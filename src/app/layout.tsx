@@ -24,7 +24,7 @@ export default function RootLayout({
                         <Link href="/" className="text-xl font-bold tracking-tight">Rotasia Tracker</Link>
                         <div className="flex gap-6">
                             <Link href="/" className="hover:text-blue-200 transition-colors">Dashboard</Link>
-                            <Link href="/scan" className="hover:text-blue-200 transition-colors">Scanner</Link>
+                            <Link href="/scan" className="hover:text-blue-200 transition-colors">Scannner</Link>
                         </div>
                     </div>
                 </nav>
