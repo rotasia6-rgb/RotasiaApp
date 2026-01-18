@@ -9,80 +9,66 @@ interface QRScannerProps {
 }
 
 export default function QRScanner({ onScan }: QRScannerProps) {
-    const scannerRef = useRef<Html5Qrcode | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [cameras, setCameras] = useState<Array<{ id: string; label: string }>>([]);
     const [cameraIndex, setCameraIndex] = useState<number>(0);
-    const [isScanning, setIsScanning] = useState(false);
 
+    // We used a ref to track the potential scanner instance to avoid React state race conditions
+    const scannerRef = useRef<Html5Qrcode | null>(null);
+    const mountedRef = useRef(false);
+
+    // Initialize cameras once
     useEffect(() => {
-        // Prevent multiple initializations
-        if (scannerRef.current) return;
-
-        const html5QrCode = new Html5Qrcode("reader");
-        scannerRef.current = html5QrCode;
-
+        mountedRef.current = true;
         Html5Qrcode.getCameras().then(devices => {
-            if (devices && devices.length) {
+            if (mountedRef.current && devices && devices.length) {
                 setCameras(devices);
-                // Try to find back camera to start with
                 const backCameraIndex = devices.findIndex(device =>
                     device.label.toLowerCase().includes("back") ||
                     device.label.toLowerCase().includes("environment")
                 );
                 setCameraIndex(backCameraIndex !== -1 ? backCameraIndex : 0);
-            } else {
-                setError("No cameras found.");
             }
         }).catch(err => {
-            console.error("Error getting cameras", err);
-            setError("Error finding camera: " + (err.message || err));
+            console.error("Error enumerating cameras", err);
+            // Don't set error here to avoid blocking UI, just fallback
         });
 
         return () => {
-            if (scannerRef.current) {
-                scannerRef.current.stop().then(() => {
-                    scannerRef.current?.clear();
-                }).catch(err => console.error("Cleanup error", err));
-                scannerRef.current = null;
-            }
+            mountedRef.current = false;
         };
     }, []);
 
-    const switchCamera = () => {
-        if (cameras.length > 1) {
-            setCameraIndex((prev) => (prev + 1) % cameras.length);
-        } else {
-            // Fallback for when devices aren't enumerated but switching might still work via constraints
-            setCameraIndex((prev) => prev + 1); // Just increment to trigger effect, logic inside effect handles the toggle
-        }
-    };
-
-    // Modified effect to handle the fallback toggle
+    // Handle scanner lifecycle in a single effect dependent on cameraIndex
     useEffect(() => {
-        if (!scannerRef.current) return;
+        // Wait for cameras to load if we expect them? 
+        // Actually we can start with default even if cameras list is empty (fallback mode)
+
+        const elementId = "reader";
+        if (!document.getElementById(elementId)) {
+            console.error("Reader element not found");
+            return;
+        }
+
+        let html5QrCode: Html5Qrcode;
+        try {
+            html5QrCode = new Html5Qrcode(elementId);
+            scannerRef.current = html5QrCode;
+        } catch (e: any) {
+            console.error("Failed to create Html5Qrcode instance", e);
+            setError("Initialization Failed: " + e.message);
+            return;
+        }
 
         const startScanner = async () => {
-            const html5QrCode = scannerRef.current;
-            if (!html5QrCode) return;
-
             try {
-                if (html5QrCode.isScanning) {
-                    await html5QrCode.stop();
-                }
-
-                let config = { fps: 10, qrbox: { width: 250, height: 250 } };
-                let videoConfig: any = { facingMode: "environment" }; // Default
+                const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+                let videoConfig: any = { facingMode: "environment" };
 
                 if (cameras.length > 1) {
-                    // We have a list, use the specific ID
                     videoConfig = { deviceId: { exact: cameras[cameraIndex].id } };
                 } else if (cameraIndex % 2 !== 0) {
-                    // Odd index = try 'user' (front)
                     videoConfig = { facingMode: "user" };
-                } else {
-                    // Even index = try 'environment' (back)
-                    videoConfig = { facingMode: "environment" };
                 }
 
                 await html5QrCode.start(
@@ -95,41 +81,66 @@ export default function QRScanner({ onScan }: QRScannerProps) {
                         // ignore
                     }
                 );
-                setIsScanning(true);
-                setError(null);
+
+                if (mountedRef.current) {
+                    setError(null);
+                }
             } catch (err: any) {
-                console.error("Error starting scanner", err);
-                setError("Camera error: " + (err.message || err));
-                setIsScanning(false);
+                if (mountedRef.current) {
+                    console.error("Error starting scanner", err);
+                    // Only show error if we really failed and it's not just a cleanup race
+                    setError("Camera Error: " + (err.message || err));
+                }
             }
         };
 
         startScanner();
 
-    }, [cameraIndex, cameras, onScan]);
+        return () => {
+            // Cleanup: stop and clear
+            if (html5QrCode) {
+                html5QrCode.stop().then(() => {
+                    html5QrCode.clear();
+                }).catch(err => {
+                    // If stop failed (e.g. not running), try to clear anyway
+                    try {
+                        html5QrCode.clear();
+                    } catch (e) {
+                        console.error("Failed to clear", e);
+                    }
+                });
+            }
+        };
+    }, [cameraIndex, cameras, onScan]); // Re-run entirely when index changes. robust but heavy.
+
+    const switchCamera = () => {
+        if (cameras.length > 1) {
+            setCameraIndex((prev) => (prev + 1) % cameras.length);
+        } else {
+            setCameraIndex((prev) => prev + 1);
+        }
+    };
 
     return (
-        <div className="w-full max-w-sm mx-auto">
-            <div id="reader" className="w-full overflow-hidden rounded-lg"></div>
-            {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+        <div className="w-full h-full relative group">
+            <div id="reader" className="w-full h-full overflow-hidden rounded-lg bg-black"></div>
+
+            {error && <p className="absolute top-2 left-2 right-2 text-center bg-black/50 text-red-400 text-xs p-1 rounded backdrop-blur-sm z-20">{error}</p>}
 
             <button
                 onClick={switchCamera}
-                className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 w-full flex items-center justify-center gap-2"
+                type="button"
+                className="absolute bottom-4 right-4 z-20 p-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-full text-white shadow-lg active:scale-95 transition-all hover:bg-white/30"
+                title="Switch Camera"
             >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
                 </svg>
-                Switch Camera {cameras.length <= 1 ? "(Mode)" : ""}
             </button>
 
-            <div className="text-xs text-center mt-2 text-gray-500">
-                <p>Found {cameras.length} cameras.</p>
-                {cameras.length > 0 ? (
-                    <p>Active: {cameras[cameraIndex]?.label}</p>
-                ) : (
-                    <p>Mode: {cameraIndex % 2 === 0 ? "Environment (Back)" : "User (Front)"}</p>
-                )}
+            <div className="absolute top-2 left-2 z-20 px-2 py-1 bg-black/40 backdrop-blur-sm rounded text-[10px] text-white/70 pointer-events-none">
+                {cameras.length <= 1 ? "Mode: " : "Cam: "}
+                {cameras.length > 0 ? (cameras[cameraIndex]?.label?.substring(0, 15) || "Unk") : (cameraIndex % 2 === 0 ? "Back" : "Front")}
             </div>
         </div>
     );
