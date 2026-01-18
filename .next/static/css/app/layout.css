@@ -723,6 +723,9 @@ video {
 .mt-6 {
   margin-top: 1.5rem;
 }
+.mt-4 {
+  margin-top: 1rem;
+}
 .block {
   display: block;
 }
@@ -1209,6 +1212,10 @@ video {
 .bg-yellow-500\/20 {
   background-color: rgb(234 179 8 / 0.2);
 }
+.bg-indigo-600 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(79 70 229 / var(--tw-bg-opacity, 1));
+}
 .bg-gradient-to-b {
   background-image: linear-gradient(to bottom, var(--tw-gradient-stops));
 }
@@ -1676,6 +1683,10 @@ body {
 }
 .hover\:bg-white\/20:hover {
   background-color: rgb(255 255 255 / 0.2);
+}
+.hover\:bg-indigo-700:hover {
+  --tw-bg-opacity: 1;
+  background-color: rgb(67 56 202 / var(--tw-bg-opacity, 1));
 }
 .hover\:text-blue-200:hover {
   --tw-text-opacity: 1;
