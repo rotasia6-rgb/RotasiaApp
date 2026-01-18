@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -13,13 +12,32 @@ export default function QRScanner({ onScan }: QRScannerProps) {
     const [cameras, setCameras] = useState<Array<{ id: string; label: string }>>([]);
     const [cameraIndex, setCameraIndex] = useState<number>(0);
 
-    // We used a ref to track the potential scanner instance to avoid React state race conditions
     const scannerRef = useRef<Html5Qrcode | null>(null);
+    const onScanRef = useRef(onScan);
     const mountedRef = useRef(false);
 
-    // Initialize cameras once
+    // Keep onScanRef updated so we don't need to restart scanner when onScan prop changes
+    useEffect(() => {
+        onScanRef.current = onScan;
+    }, [onScan]);
+
+    // 1. Initialize Instance & Cameras (Once)
     useEffect(() => {
         mountedRef.current = true;
+        const elementId = "reader";
+
+        // Init Scanner Instance
+        let instance: Html5Qrcode | null = null;
+        try {
+            if (document.getElementById(elementId)) {
+                instance = new Html5Qrcode(elementId);
+                scannerRef.current = instance;
+            }
+        } catch (e) {
+            console.error("Init error", e);
+        }
+
+        // Init Cameras
         Html5Qrcode.getCameras().then(devices => {
             if (mountedRef.current && devices && devices.length) {
                 setCameras(devices);
@@ -31,37 +49,52 @@ export default function QRScanner({ onScan }: QRScannerProps) {
             }
         }).catch(err => {
             console.error("Error enumerating cameras", err);
-            // Don't set error here to avoid blocking UI, just fallback
         });
 
         return () => {
             mountedRef.current = false;
+            // Cleanup on unmount
+            if (instance) {
+                try {
+                    // Attempt to stop only if internal state suggests it is running.
+                    // Even then, wrap in catch because the library can be quirky.
+                    if (instance.isScanning) {
+                        instance.stop()
+                            .catch((err) => console.warn("Stop failed during cleanup", err))
+                            .then(() => {
+                                // Always try to clear after stop, even if stop "fails" safely
+                                try {
+                                    instance?.clear();
+                                } catch (e) { /* ignore sync clear error */ }
+                            });
+                    } else {
+                        try {
+                            instance.clear();
+                        } catch (e) { /* ignore sync clear error */ }
+                    }
+                } catch (e) {
+                    console.warn("Sync cleanup error", e);
+                }
+                scannerRef.current = null;
+            }
         };
     }, []);
 
-    // Handle scanner lifecycle in a single effect dependent on cameraIndex
+    // 2. Manage Scanning State (Stop/Start when camera changes)
     useEffect(() => {
-        // Wait for cameras to load if we expect them? 
-        // Actually we can start with default even if cameras list is empty (fallback mode)
+        const html5QrCode = scannerRef.current;
+        if (!html5QrCode) return;
 
-        const elementId = "reader";
-        if (!document.getElementById(elementId)) {
-            console.error("Reader element not found");
-            return;
-        }
+        let ignore = false;
 
-        let html5QrCode: Html5Qrcode;
-        try {
-            html5QrCode = new Html5Qrcode(elementId);
-            scannerRef.current = html5QrCode;
-        } catch (e: any) {
-            console.error("Failed to create Html5Qrcode instance", e);
-            setError("Initialization Failed: " + e.message);
-            return;
-        }
-
-        const startScanner = async () => {
+        const restart = async () => {
             try {
+                if (html5QrCode.isScanning) {
+                    await html5QrCode.stop().catch(() => { });
+                }
+
+                if (ignore) return;
+
                 const config = { fps: 10, qrbox: { width: 250, height: 250 } };
                 let videoConfig: any = { facingMode: "environment" };
 
@@ -75,43 +108,36 @@ export default function QRScanner({ onScan }: QRScannerProps) {
                     videoConfig,
                     config,
                     (decodedText) => {
-                        onScan(decodedText);
+                        // Use ref to always call latest callback without restarting
+                        if (onScanRef.current) onScanRef.current(decodedText);
                     },
                     (errorMessage) => {
                         // ignore
                     }
                 );
 
-                if (mountedRef.current) {
-                    setError(null);
-                }
+                if (mountedRef.current && !ignore) setError(null);
             } catch (err: any) {
-                if (mountedRef.current) {
-                    console.error("Error starting scanner", err);
-                    // Only show error if we really failed and it's not just a cleanup race
-                    setError("Camera Error: " + (err.message || err));
+                if (mountedRef.current && !ignore) {
+                    // Only show meaningful errors
+                    if (err?.name === "NotAllowedError") {
+                        setError("Camera permission denied");
+                    } else if (err?.toString().includes("already")) {
+                        // ignore "already started" errors
+                    } else {
+                        setError("Camera Error: " + (err.message || err));
+                    }
                 }
             }
         };
 
-        startScanner();
+        restart();
 
         return () => {
-            // Cleanup: stop and clear
-            if (html5QrCode) {
-                html5QrCode.stop().then(() => {
-                    html5QrCode.clear();
-                }).catch(err => {
-                    // If stop failed (e.g. not running), try to clear anyway
-                    try {
-                        html5QrCode.clear();
-                    } catch (e) {
-                        console.error("Failed to clear", e);
-                    }
-                });
-            }
+            ignore = true;
         };
-    }, [cameraIndex, cameras, onScan]); // Re-run entirely when index changes. robust but heavy.
+
+    }, [cameraIndex, cameras]); // Removed onScan from deps!
 
     const switchCamera = () => {
         if (cameras.length > 1) {
