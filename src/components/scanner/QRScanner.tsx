@@ -49,9 +49,18 @@ export default function QRScanner({ onScan }: QRScannerProps) {
         };
     }, []);
 
-    // Effect to start/restart scanner when cameraIndex or cameras change
+    const switchCamera = () => {
+        if (cameras.length > 1) {
+            setCameraIndex((prev) => (prev + 1) % cameras.length);
+        } else {
+            // Fallback for when devices aren't enumerated but switching might still work via constraints
+            setCameraIndex((prev) => prev + 1); // Just increment to trigger effect, logic inside effect handles the toggle
+        }
+    };
+
+    // Modified effect to handle the fallback toggle
     useEffect(() => {
-        if (!cameras.length || !scannerRef.current) return;
+        if (!scannerRef.current) return;
 
         const startScanner = async () => {
             const html5QrCode = scannerRef.current;
@@ -62,11 +71,22 @@ export default function QRScanner({ onScan }: QRScannerProps) {
                     await html5QrCode.stop();
                 }
 
-                const cameraId = cameras[cameraIndex].id;
-                const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+                let config = { fps: 10, qrbox: { width: 250, height: 250 } };
+                let videoConfig: any = { facingMode: "environment" }; // Default
+
+                if (cameras.length > 1) {
+                    // We have a list, use the specific ID
+                    videoConfig = { deviceId: { exact: cameras[cameraIndex].id } };
+                } else if (cameraIndex % 2 !== 0) {
+                    // Odd index = try 'user' (front)
+                    videoConfig = { facingMode: "user" };
+                } else {
+                    // Even index = try 'environment' (back)
+                    videoConfig = { facingMode: "environment" };
+                }
 
                 await html5QrCode.start(
-                    { deviceId: { exact: cameraId } },
+                    videoConfig,
                     config,
                     (decodedText) => {
                         onScan(decodedText);
@@ -88,32 +108,29 @@ export default function QRScanner({ onScan }: QRScannerProps) {
 
     }, [cameraIndex, cameras, onScan]);
 
-    const switchCamera = () => {
-        if (cameras.length > 1) {
-            setCameraIndex((prev) => (prev + 1) % cameras.length);
-        }
-    };
-
     return (
         <div className="w-full max-w-sm mx-auto">
             <div id="reader" className="w-full overflow-hidden rounded-lg"></div>
             {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
 
-            {cameras.length > 1 && (
-                <button
-                    onClick={switchCamera}
-                    className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 w-full flex items-center justify-center gap-2"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-                    </svg>
-                    Switch Camera
-                </button>
-            )}
+            <button
+                onClick={switchCamera}
+                className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 w-full flex items-center justify-center gap-2"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                </svg>
+                Switch Camera {cameras.length <= 1 ? "(Mode)" : ""}
+            </button>
 
-            <p className="text-xs text-center mt-2 text-gray-500">
-                Camera: {cameras[cameraIndex]?.label || "Loading..."}
-            </p>
+            <div className="text-xs text-center mt-2 text-gray-500">
+                <p>Found {cameras.length} cameras.</p>
+                {cameras.length > 0 ? (
+                    <p>Active: {cameras[cameraIndex]?.label}</p>
+                ) : (
+                    <p>Mode: {cameraIndex % 2 === 0 ? "Environment (Back)" : "User (Front)"}</p>
+                )}
+            </div>
         </div>
     );
 }
