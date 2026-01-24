@@ -1,4 +1,5 @@
 {
-  "/feedback/wall/page": "app/feedback/wall/page.js",
-  "/feedback/page": "app/feedback/page.js"
+  "/find-my-room/page": "app/find-my-room/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/login/page": "app/login/page.js"
 }

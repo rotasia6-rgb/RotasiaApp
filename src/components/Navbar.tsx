@@ -8,7 +8,7 @@ export default function Navbar() {
 
     // Routes where the Navbar should be hidden
     // We hide it on the public form (/), login page, and public feedback pages
-    if (pathname === "/" || pathname === "/login" || pathname === "/feedback" || pathname === "/feedback/wall" || pathname === "/voting") {
+    if (pathname === "/" || pathname === "/login" || pathname === "/feedback" || pathname === "/feedback/wall" || pathname === "/voting" || pathname === "/find-my-room") {
         return null;
     }
 

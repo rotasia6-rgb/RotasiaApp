@@ -6,16 +6,20 @@
       "static/css/app/layout.css",
       "static/chunks/app/layout.js"
     ],
-    "/feedback/wall/page": [
+    "/login/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/css/app/feedback/wall/page.css",
-      "static/chunks/app/feedback/wall/page.js"
+      "static/chunks/app/login/page.js"
     ],
-    "/feedback/page": [
+    "/dashboard/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/feedback/page.js"
+      "static/chunks/app/dashboard/page.js"
+    ],
+    "/find-my-room/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/find-my-room/page.js"
     ]
   }
 }
