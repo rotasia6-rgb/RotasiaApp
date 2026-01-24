@@ -69,36 +69,36 @@ export default function FeedbackWallPage() {
                 <div className="absolute bottom-[-20%] right-[10%] w-[500px] h-[500px] bg-[#E91A83] rounded-full blur-[150px] opacity-20 duration-[10s] animate-pulse"></div>
             </div>
 
-            <header className="relative z-10 p-8 text-center">
-                <h1 className="text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-200 to-gray-400 font-sans tracking-tight mb-4 drop-shadow-lg">
+            <header className="relative z-10 p-4 md:p-8 text-center">
+                <h1 className="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-200 to-gray-400 font-sans tracking-tight mb-2 drop-shadow-lg">
                     WALL OF LO<span className="text-[#E91A83]">V</span>E
                 </h1>
-                <p className="text-gray-400 text-lg md:text-xl font-light tracking-wide uppercase">
+                <p className="text-gray-400 text-base md:text-lg font-light tracking-wide uppercase">
                     What people are saying about Rotasia Chennai 2026
                 </p>
             </header>
 
-            <main className="relative z-10 p-4 md:p-8 max-w-[1600px] mx-auto">
-                <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
+            <main className="relative z-10 p-4 max-w-[1800px] mx-auto">
+                <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 gap-4 space-y-4">
                     {feedbacks.map((item, index) => (
                         <div
                             key={item.id}
-                            className="break-inside-avoid bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 hover:translate-y-[-5px] hover:bg-white/10 transition-all duration-300 shadow-xl group"
+                            className="break-inside-avoid bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-4 hover:translate-y-[-3px] hover:bg-white/10 transition-all duration-300 shadow-lg group"
                             style={{ animationDelay: `${index * 100}ms` }}
                         >
-                            <Quote className="text-[#E91A83] w-10 h-10 mb-4 opacity-50 group-hover:opacity-100 transition-opacity" />
+                            <Quote className="text-[#E91A83] w-6 h-6 mb-3 opacity-50 group-hover:opacity-100 transition-opacity" />
 
-                            <p className="text-gray-200 text-lg leading-relaxed font-light mb-6">
+                            <p className="text-gray-200 text-sm md:text-base leading-relaxed font-light mb-4">
                                 "{item.message}"
                             </p>
 
-                            <div className="flex items-center gap-4 pt-4 border-t border-white/10">
-                                <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-[#E91A83] to-[#4C24C1] flex items-center justify-center text-white font-bold text-sm shadow-lg">
+                            <div className="flex items-center gap-3 pt-3 border-t border-white/10">
+                                <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-[#E91A83] to-[#4C24C1] flex items-center justify-center text-white font-bold text-xs shadow-lg">
                                     {item.name.charAt(0).toUpperCase()}
                                 </div>
                                 <div className="flex-1">
-                                    <h3 className="text-white font-bold text-base tracking-wide">{item.name}</h3>
-                                    <div className="flex items-center gap-2 text-xs text-gray-500 font-medium uppercase tracking-wider">
+                                    <h3 className="text-white font-bold text-sm tracking-wide">{item.name}</h3>
+                                    <div className="flex items-center gap-2 text-[10px] text-gray-500 font-medium uppercase tracking-wider">
                                         <span>Delegate</span>
                                     </div>
                                 </div>
