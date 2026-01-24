@@ -1,9 +1,9 @@
 {
   "pages": {
-    "/page": [
+    "/dashboard/feedback/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/page.js"
+      "static/chunks/app/dashboard/feedback/page.js"
     ],
     "/layout": [
       "static/chunks/webpack.js",
@@ -11,10 +11,26 @@
       "static/css/app/layout.css",
       "static/chunks/app/layout.js"
     ],
-    "/scan/page": [
+    "/feedback/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/scan/page.js"
+      "static/chunks/app/feedback/page.js"
+    ],
+    "/feedback/wall/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/feedback/wall/page.css",
+      "static/chunks/app/feedback/wall/page.js"
+    ],
+    "/dashboard/voting/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/dashboard/voting/page.js"
+    ],
+    "/voting/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/voting/page.js"
     ]
   }
 }

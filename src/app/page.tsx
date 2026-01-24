@@ -1,228 +1,246 @@
+'use client';
 
-"use client";
+import { useState, ChangeEvent, FormEvent } from 'react';
+import { createClient } from '@supabase/supabase-js';
+import { Inter, Plus_Jakarta_Sans } from 'next/font/google';
+import styles from './form.module.css';
 
-import { useMemo, useState } from "react";
-import { useScanRecords } from "@/hooks/useScanRecords";
-import { calculateStats } from "@/lib/stats";
-import { Users, UserCheck, Activity, Filter, ChevronDown } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { DAYS, PURPOSES_BY_DAY, Day } from "@/lib/data";
+const inter = Inter({ subsets: ['latin'], variable: '--font-body' });
+const plusJakarta = Plus_Jakarta_Sans({ subsets: ['latin'], variable: '--font-heading' });
 
-import { useDelegates } from "@/hooks/useDelegates";
-import DelegatesModal from "@/components/DelegatesModal";
+// Configuration
+const FORM_SUPABASE_URL = process.env.NEXT_PUBLIC_ROTASIA_FORM_URL || 'https://cokrhsjbkkhrrimrzmgy.supabase.co';
+const FORM_SUPABASE_KEY = process.env.NEXT_PUBLIC_ROTASIA_FORM_KEY || 'sb_publishable_w5KN2D0Zy1-g3AeoDP6icQ_zfekGSLS';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyImFNGdjEl9s08PAczr4LFRQVHAUXPn9F8N0AkB1gbCdp9sAg7oyOvSQAh_vwdTgJa/exec';
 
-export default function Dashboard() {
-    const records = useScanRecords();
-    const { delegates, isLoading } = useDelegates();
-    const [isDelegatesModalOpen, setIsDelegatesModalOpen] = useState(false);
+// Initialize Supabase for this specific form
+const supabase = createClient(FORM_SUPABASE_URL, FORM_SUPABASE_KEY);
 
-    // Filter State
-    const [filterDay, setFilterDay] = useState<Day>(DAYS[0]);
-    const [filterPurpose, setFilterPurpose] = useState<string>(PURPOSES_BY_DAY[DAYS[0]][0]);
+export default function MrMsRotasiaPage() {
+    const [isLoading, setIsLoading] = useState(false);
+    const [fileName, setFileName] = useState<string | null>(null);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-    // Calculate stats only when delegates are loaded
-    const stats = useMemo(() => {
-        if (isLoading) return null;
-        return calculateStats(records, delegates);
-    }, [records, delegates, isLoading]);
-
-    const filteredData = useMemo(() => {
-        if (!records) return { count: 0, remaining: 0 };
-        // We can just filter raw records directly for absolute accuracy
-        const count = records.filter(r => r.day === filterDay && r.purpose === filterPurpose).length;
-        const total = delegates.length;
-        return {
-            count,
-            remaining: total - count
-        };
-    }, [records, delegates.length, filterDay, filterPurpose]);
-
-    const handleDayChange = (newDay: Day) => {
-        setFilterDay(newDay);
-        // Default to first purpose of new day to avoid invalid state
-        setFilterPurpose(PURPOSES_BY_DAY[newDay][0]);
+    const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            setFileName(e.target.files[0].name);
+        } else {
+            setFileName(null);
+        }
     };
 
-    if (isLoading || !stats) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            </div>
-        );
-    }
+    const getBase64 = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => {
+                const result = reader.result as string;
+                resolve(result.split(',')[1]); // Remove data:image/...;base64,
+            };
+            reader.onerror = error => reject(error);
+        });
+    };
 
-    // Simple heuristic: If breakfast is 50%, predict lunch will be ~95% of breakfast + 5% variance
-    const currentDay = 2; // Hardcoded for demo
-    const breakfastCount = records.filter(r => r.day === currentDay && r.purpose === "Breakfast").length;
-    const lunchPrediction = Math.round(breakfastCount * 0.98);
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setIsLoading(true);
+        setSuccessMessage(null);
 
-    // Bottleneck Logic
-    const bottleneckPurpose = stats.dailyStats
-        .flatMap(day => day.purposes.map(p => ({ ...p, day: day.day })))
-        .find(p => p.percentage < 20 && p.percentage > 0);
+        const form = e.currentTarget;
+        const formData = new FormData(form);
+        const fileInput = form.querySelector('input[type="file"]') as HTMLInputElement;
+        const file = fileInput?.files?.[0];
+
+        try {
+            let photoUrl = '';
+
+            // 1. Upload to Google Drive via Apps Script
+            if (file) {
+                const base64File = await getBase64(file);
+
+                const payload = {
+                    file: base64File,
+                    filename: `${Date.now()}_${file.name}`,
+                    mimeType: file.type
+                };
+
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload),
+                    headers: {
+                        "Content-Type": "text/plain;charset=utf-8",
+                    },
+                });
+
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    photoUrl = result.fileUrl;
+                    console.log('File uploaded to Drive:', photoUrl);
+                } else {
+                    throw new Error('Google Drive upload failed: ' + result.message);
+                }
+            }
+
+            // 2. Submit Data to Supabase
+            const { data, error } = await supabase
+                .from('registrations')
+                .insert([
+                    {
+                        full_name: formData.get('fullName'),
+                        gender: formData.get('gender'),
+                        dob: formData.get('dob'),
+                        club_name: formData.get('clubName'),
+                        district: formData.get('district'),
+                        email: formData.get('email'),
+                        phone: formData.get('phone'),
+                        instagram: formData.get('instagram'),
+                        photo_url: photoUrl,
+                        bio: formData.get('bio')
+                    }
+                ]);
+
+            if (error) throw error;
+
+            console.log('Supabase Insert Success:', data);
+            setSuccessMessage('Registration Successful! Thank you for registering for Mr. & Ms. Rotasia.');
+
+            form.reset();
+            setFileName(null);
+
+            // Remove message after 5 seconds
+            setTimeout(() => {
+                setSuccessMessage(null);
+            }, 5000);
+
+        } catch (error: any) {
+            console.error('Error submitting form:', error);
+            alert('An error occurred during registration. Please try again. \nDebug: ' + error.message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     return (
-        <div className="container mx-auto p-6 max-w-7xl">
-            <h1 className="text-3xl font-bold mb-8 text-gray-800">Event Dashboard</h1>
+        <div className={`${styles.container} ${inter.variable} ${plusJakarta.variable}`} style={{ fontFamily: 'var(--font-body)' }}>
+            <div className={styles.backgroundOverlay}></div>
 
-            {/* KPI Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                <KpiCard
-                    title="Total Delegates"
-                    value={stats.totalDelegates}
-                    icon={<Users className="w-6 h-6 text-blue-500" />}
-                    subtext="Registered Attendees"
-                    onClick={() => setIsDelegatesModalOpen(true)}
-                    className="cursor-pointer hover:border-blue-300 hover:shadow-md transition-all active:scale-95"
+            <header className={styles.siteHeader}>
+                <img
+                    src="https://rotasia2026chennai.com/wp-content/uploads/2024/07/logo-text-1.png"
+                    alt="Rotasia Chennai 2026 Logo"
+                    className={styles.logo}
                 />
+            </header>
 
-                {/* Filterable Scan Stats Card */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between relative overflow-visible z-10">
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="flex-1">
-                            <p className="text-sm font-medium text-gray-500 uppercase tracking-wide flex items-center gap-2">
-                                <Filter className="w-4 h-4" /> Scan Checker
-                            </p>
+            <main className={styles.mainContainer}>
+                <div className={styles.formCard}>
+                    <h1 className={styles.formTitle}>Mr. & Ms. Rotasia</h1>
+                    <p className={styles.formSubtitle}>Register to be the face of Rotasia Chennai 2026</p>
 
-                            <div className="flex gap-2 mt-3">
-                                {/* Day Selector */}
-                                <div className="relative">
-                                    <select
-                                        value={filterDay}
-                                        onChange={(e) => handleDayChange(Number(e.target.value) as Day)}
-                                        className="appearance-none bg-blue-50 border-none text-blue-700 text-sm font-bold rounded-lg py-1.5 pl-3 pr-8 cursor-pointer hover:bg-blue-100 transition-colors focus:ring-2 focus:ring-blue-200 outline-none"
-                                    >
-                                        {DAYS.map(d => <option key={d} value={d}>Day {d}</option>)}
-                                    </select>
-                                    <ChevronDown className="w-4 h-4 text-blue-500 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
-                                </div>
+                    <form id="rotasiaForm" onSubmit={handleSubmit} encType="multipart/form-data">
 
-                                {/* Purpose Selector */}
-                                <div className="relative">
-                                    <select
-                                        value={filterPurpose}
-                                        onChange={(e) => setFilterPurpose(e.target.value)}
-                                        className="appearance-none bg-gray-50 border-none text-gray-700 text-sm font-bold rounded-lg py-1.5 pl-3 pr-8 cursor-pointer hover:bg-gray-100 transition-colors focus:ring-2 focus:ring-gray-200 outline-none max-w-[140px] truncate"
-                                    >
-                                        {PURPOSES_BY_DAY[filterDay].map(p => <option key={p} value={p}>{p}</option>)}
-                                    </select>
-                                    <ChevronDown className="w-4 h-4 text-gray-500 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <div className={styles.formGroup}>
+                            <label htmlFor="fullName" className={styles.label}>Full Name</label>
+                            <input type="text" id="fullName" name="fullName" placeholder="Enter your full name" required className={styles.input} />
+                        </div>
+
+                        <div className={styles.formRow}>
+                            <div className={styles.formGroup}>
+                                <label htmlFor="gender" className={styles.label}>Gender</label>
+                                <select id="gender" name="gender" required className={styles.select}>
+                                    <option value="" disabled selected>Select gender</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label htmlFor="dob" className={styles.label}>Date of Birth</label>
+                                <input type="date" id="dob" name="dob" required className={styles.input} />
+                            </div>
+                        </div>
+
+                        <div className={styles.formGroup}>
+                            <label htmlFor="clubName" className={styles.label}>Rotaract Club Name</label>
+                            <input type="text" id="clubName" name="clubName" placeholder="e.g. RAC xxx" required className={styles.input} />
+                        </div>
+
+                        <div className={styles.formGroup}>
+                            <label htmlFor="district" className={styles.label}>Rotary International District</label>
+                            <input type="text" id="district" name="district" placeholder="e.g. District xxx" required className={styles.input} />
+                        </div>
+
+                        <div className={styles.formRow}>
+                            <div className={styles.formGroup}>
+                                <label htmlFor="email" className={styles.label}>Email Address</label>
+                                <input type="email" id="email" name="email" placeholder="yourname@example.com" required className={styles.input} />
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label htmlFor="phone" className={styles.label}>WhatsApp Number</label>
+                                <input type="tel" id="phone" name="phone" placeholder="+91 98765 43210" required className={styles.input} />
+                            </div>
+                        </div>
+
+                        <div className={styles.formGroup}>
+                            <label htmlFor="instagram" className={styles.label}>Instagram Handle</label>
+                            <div className={styles.inputIconWrapper}>
+                                <span className={styles.inputIcon}>@</span>
+                                <input type="text" id="instagram" name="instagram" placeholder="finstein_emp" className={`${styles.input} ${styles.hasIcon}`} />
+                            </div>
+                        </div>
+
+                        <div className={styles.formGroup}>
+                            <label htmlFor="photo" className={styles.label}>Upload Your Photo (Portfolio Shot)</label>
+                            <div className={styles.fileUploadWrapper}>
+                                <input
+                                    type="file"
+                                    id="photo"
+                                    name="photo"
+                                    accept="image/*"
+                                    required
+                                    className={styles.fileInput}
+                                    onChange={handleFileChange}
+                                />
+                                <div className={`${styles.fileUploadVisual} ${fileName ? styles.fileUploadVisualActive : ''}`}>
+                                    <span className={styles.uploadIcon}>📁</span>
+                                    <span className={styles.uploadText}>{fileName ? `Selected: ${fileName}` : 'Click to upload or drag & drop'}</span>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div className="flex items-end justify-between mt-2">
-                        <div>
-                            <div className="text-3xl font-bold text-gray-900">{filteredData.count}</div>
-                            <div className="text-xs text-gray-400 font-medium uppercase mt-1">Scanned</div>
+                        <div className={styles.formGroup}>
+                            <label htmlFor="bio" className={styles.label}>Why do you want to participate?</label>
+                            <textarea id="bio" name="bio" rows={4}
+                                placeholder="Tell us about yourself in a few words..." className={styles.textarea}></textarea>
                         </div>
-                        <div className="text-right">
-                            <div className="text-3xl font-bold text-gray-400">{filteredData.remaining}</div>
-                            <div className="text-xs text-gray-400 font-medium uppercase mt-1">Remaining</div>
-                        </div>
-                    </div>
-                </div>
 
-                <KpiCard
-                    title="Catering Forecast"
-                    value={`~${lunchPrediction}`}
-                    icon={<UserCheck className="w-6 h-6 text-orange-500" />}
-                    subtext={`Lunch prediction based on ${breakfastCount} Breakfast`}
-                />
-            </div>
+                        <button type="submit" className={styles.submitBtn} disabled={isLoading} style={isLoading ? { opacity: 0.7 } : {}}>
+                            {isLoading ? 'Processing...' : 'Register Now'}
+                        </button>
 
-            {/* Bottleneck Alert */}
-            {bottleneckPurpose && (
-                <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-8 flex items-start gap-4">
-                    <div className="p-2 bg-red-100 rounded-full text-red-600">
-                        <Activity className="w-5 h-5" />
-                    </div>
-                    <div>
-                        <h3 className="font-bold text-red-900">Potential Bottleneck: {bottleneckPurpose.name} (Day {bottleneckPurpose.day})</h3>
-                        <p className="text-sm text-red-700 mt-1">
-                            Only {bottleneckPurpose.count} scans recorded ({bottleneckPurpose.percentage.toFixed(1)}%).
-                            This is significantly lower than expected. Check scanner stations.
-                        </p>
-                    </div>
-                </div>
-            )}
-
-            {/* Daily Breakdown */}
-            <h2 className="text-2xl font-semibold mb-6 text-gray-800">Daily Breakdown</h2>
-            <div className="grid grid-cols-1 gap-8">
-                {stats.dailyStats.map((dayStat) => (
-                    <div key={dayStat.day} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <div className="flex justify-between items-center mb-4">
-                            <div>
-                                <h3 className="text-xl font-bold text-gray-800">Day {dayStat.day}</h3>
-                                <p className="text-sm text-gray-500">All Purposes Completion: <span className="font-semibold text-gray-800">{dayStat.completionRate.toFixed(1)}%</span></p>
+                        {successMessage && (
+                            <div style={{
+                                background: 'rgba(76, 36, 193, 0.9)',
+                                color: 'white',
+                                padding: '1rem',
+                                borderRadius: '12px',
+                                marginTop: '1rem',
+                                textAlign: 'center',
+                                fontWeight: 'bold',
+                                animation: 'fadeIn 0.5s'
+                            }}>
+                                {successMessage}
                             </div>
-                        </div>
+                        )}
 
-                        <div className="space-y-4">
-                            {dayStat.purposes.map((purpose) => (
-                                <div key={purpose.name}>
-                                    <div className="flex justify-between text-sm mb-1">
-                                        <div className="flex items-center gap-2">
-                                            <span className="font-medium text-gray-700">{purpose.name}</span>
-                                            {purpose.percentage > 80 && <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded">Completed</span>}
-                                        </div>
-                                        <span className="text-gray-500">{purpose.count} / {stats.totalDelegates} ({purpose.percentage.toFixed(0)}%)</span>
-                                    </div>
-                                    <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
-                                        <div
-                                            className={cn(
-                                                "h-2.5 rounded-full transition-all duration-500",
-                                                purpose.percentage >= 100 ? "bg-green-500" :
-                                                    purpose.percentage > 50 ? "bg-blue-500" : "bg-blue-300"
-                                            )}
-                                            style={{ width: `${purpose.percentage}%` }}
-                                        ></div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            {/* Delegates Modal */}
-            <DelegatesModal
-                isOpen={isDelegatesModalOpen}
-                onClose={() => setIsDelegatesModalOpen(false)}
-                delegates={delegates}
-            />
-        </div>
-    );
-}
-
-interface KpiCardProps {
-    title: string;
-    value: string | number;
-    icon: React.ReactNode;
-    subtext: string;
-    onClick?: () => void;
-    className?: string;
-}
-
-function KpiCard({ title, value, icon, subtext, onClick, className }: KpiCardProps) {
-    return (
-        <div
-            onClick={onClick}
-            className={cn(
-                "bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between select-none",
-                className
-            )}
-        >
-            <div className="flex justify-between items-start mb-4">
-                <div>
-                    <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">{title}</p>
-                    <h3 className="text-3xl font-bold text-gray-900 mt-1">{value}</h3>
+                    </form>
                 </div>
-                <div className="p-2 bg-gray-50 rounded-lg">{icon}</div>
-            </div>
-            <p className="text-sm text-gray-400">{subtext}</p>
+            </main>
+
+            <footer className={styles.siteFooter}>
+                <p>© 2026 Rotasia Chennai. All Rights Reserved.</p>
+            </footer>
         </div>
     );
 }

@@ -33,7 +33,7 @@ export default function LoginPage() {
 
     useEffect(() => {
         if (state.success) {
-            router.push("/");
+            router.push("/dashboard");
         }
     }, [state.success, router]);
 

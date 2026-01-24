@@ -7,13 +7,13 @@ export function middleware(request: NextRequest) {
 
     // If user has valid cookie and tries to access login, redirect to dashboard
     if (authCookie && pathname === "/login") {
-        return NextResponse.redirect(new URL("/", request.url));
+        return NextResponse.redirect(new URL("/dashboard", request.url));
     }
 
     // If user is missing cookie and tries to access protected routes
-    // Protected routes: Root (/) and Scan (/scan)
-    // We allow public assets like /_next, /static, /favicon.ico etc.
-    const isProtectedRoute = pathname === "/" || pathname.startsWith("/scan");
+    // Protected routes: Dashboard (/dashboard) and Scan (/scan)
+    // / (root) is now public (Form)
+    const isProtectedRoute = pathname.startsWith("/dashboard") || pathname.startsWith("/scan");
 
     if (!authCookie && isProtectedRoute) {
         return NextResponse.redirect(new URL("/login", request.url));
