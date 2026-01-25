@@ -148,8 +148,8 @@ export default function MrMsRotasiaPage() {
                         <div className={styles.formRow}>
                             <div className={styles.formGroup}>
                                 <label htmlFor="gender" className={styles.label}>Gender</label>
-                                <select id="gender" name="gender" required className={styles.select}>
-                                    <option value="" disabled selected>Select gender</option>
+                                <select id="gender" name="gender" required className={styles.select} defaultValue="">
+                                    <option value="" disabled>Select gender</option>
                                     <option value="male">Male</option>
                                     <option value="female">Female</option>
                                     <option value="other">Other</option>

@@ -13,10 +13,9 @@ interface DelegateDetails {
     email: string;
 }
 
-interface Roommate {
+interface Coordinator {
     name: string;
-    rotasia_id: string;
-    phone?: string;
+    phone: string;
 }
 
 export default function RoomLookupPage() {
@@ -25,6 +24,7 @@ export default function RoomLookupPage() {
     const [error, setError] = useState<string | null>(null);
     const [myData, setMyData] = useState<DelegateDetails | null>(null);
     const [roommates, setRoommates] = useState<Roommate[]>([]);
+    const [coordinator, setCoordinator] = useState<Coordinator | null>(null);
 
     const handleSearch = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -34,10 +34,10 @@ export default function RoomLookupPage() {
         setError(null);
         setMyData(null);
         setRoommates([]);
+        setCoordinator(null);
 
         try {
             // 1. Find the user by Email
-            // Note: DB column names might be exactly as migrated: name, email, club_name, district, room_number, rotasia_id
             const { data: userRecords, error: userError } = await supabase
                 .from('delegates')
                 .select('*')
@@ -56,17 +56,18 @@ export default function RoomLookupPage() {
                 club_name: me.club_name || "N/A",
                 district: me.district || "N/A",
                 room_number: me.room_number || "To be assigned",
-                rotasia_id: me.rotasia_id || me.id.substring(0, 8).toUpperCase(), // Fallback to ID fragment if rotasia_id missing
+                rotasia_id: me.rotasia_id || me.id.substring(0, 8).toUpperCase(),
                 email: me.email
             });
 
-            // 2. If room assigned, find roommates
+            // 2. If room assigned, find roommates and coordinator
             if (me.room_number) {
+                // Fetch Roommates
                 const { data: roomRecords, error: roomError } = await supabase
                     .from('delegates')
                     .select('name, rotasia_id, phone')
                     .eq('room_number', me.room_number)
-                    .neq('email', email.trim()); // Exclude self
+                    .neq('email', email.trim());
 
                 if (roomError) throw roomError;
 
@@ -76,6 +77,17 @@ export default function RoomLookupPage() {
                         rotasia_id: r.rotasia_id || "N/A",
                         phone: r.phone
                     })));
+                }
+
+                // Fetch Coordinator
+                const { data: coordData, error: coordError } = await supabase
+                    .from('room_coordinators')
+                    .select('name, phone')
+                    .eq('room_number', me.room_number)
+                    .single();
+
+                if (!coordError && coordData) {
+                    setCoordinator(coordData);
                 }
             }
 
@@ -155,6 +167,28 @@ export default function RoomLookupPage() {
                                 </div>
                             </div>
 
+                            {/* Coordinator Info */}
+                            {coordinator && (
+                                <div className="bg-gradient-to-br from-blue-900/50 to-blue-800/30 p-5 rounded-2xl border border-blue-500/30">
+                                    <div className="flex items-center gap-3 mb-3">
+                                        <div className="p-2 bg-blue-500/20 rounded-full">
+                                            <User className="w-5 h-5 text-blue-300" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-lg font-bold text-white">Room Coordinator</h3>
+                                            <p className="text-xs text-blue-300">Contact for assistance</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center justify-between bg-black/20 p-3 rounded-xl border border-white/5">
+                                        <span className="text-white font-medium">{coordinator.name}</span>
+                                        <a href={`tel:${coordinator.phone}`} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-2 rounded-lg transition-colors font-bold">
+                                            <Phone className="w-3 h-3" />
+                                            Call
+                                        </a>
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Room Info - Spotlighted */}
                             <div className="bg-gradient-to-br from-[#6D28D9] to-[#4C1D95] p-6 rounded-2xl border border-purple-400/30 shadow-[0_0_40px_rgba(109,40,217,0.4)] relative overflow-hidden group">
                                 {/* Decorative Glow */}
@@ -205,6 +239,7 @@ export default function RoomLookupPage() {
                                     </div>
                                 )}
                             </div>
+
                         </div>
                     )}
                 </div>

@@ -1,5 +1,7 @@
 {
-  "/find-my-room/page": "app/find-my-room/page.js",
+  "/scan/page": "app/scan/page.js",
+  "/voting/page": "app/voting/page.js",
   "/dashboard/page": "app/dashboard/page.js",
-  "/login/page": "app/login/page.js"
+  "/find-my-room/page": "app/find-my-room/page.js",
+  "/dashboard/voting/page": "app/dashboard/voting/page.js"
 }

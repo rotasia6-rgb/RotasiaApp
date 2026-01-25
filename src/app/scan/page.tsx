@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { DAYS, PURPOSES_BY_DAY, Day } from "@/lib/data";
+import { PERMISSIONS } from "@/lib/permissions";
 import { supabase } from "@/lib/supabase";
 import { useScanRecords } from "@/hooks/useScanRecords";
 import { useDelegates } from "@/hooks/useDelegates"; // New hook
@@ -17,7 +18,8 @@ const BEEP_SOUND = "data:audio/wav;base64,UklGRl9vTNEAAABXQVZFZm10IBAAAAABAAEAQB
 
 export default function ScanPage() {
     const [selectedDay, setSelectedDay] = useState<Day>(1);
-    const [selectedPurpose, setSelectedPurpose] = useState<string>(PURPOSES_BY_DAY[1][0]);
+    const [selectedPurpose, setSelectedPurpose] = useState<string>("");
+    const [currentUser, setCurrentUser] = useState<string | null>(null);
     const [manualId, setManualId] = useState("");
     const [feedback, setFeedback] = useState<{ type: "success" | "warning" | "error"; message: string; subtext?: string } | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
@@ -30,10 +32,47 @@ export default function ScanPage() {
     const { delegates, isLoading: isLoadingDelegates } = useDelegates();
     const { addToQueue, queueLength, isSyncing } = useOfflineSync();
 
-    // Reset purpose when day changes
+    // Get current user from cookie
     useEffect(() => {
-        setSelectedPurpose(PURPOSES_BY_DAY[selectedDay][0]);
-    }, [selectedDay]);
+        const match = document.cookie.match(new RegExp('(^| )current_user=([^;]+)'));
+        if (match) {
+            setCurrentUser(match[2]);
+        }
+    }, []);
+
+    // Filtered Days based on permissions
+    const availableDays = useMemo(() => {
+        if (!currentUser || !PERMISSIONS[currentUser]) return DAYS;
+        if (PERMISSIONS[currentUser].allowedPurposes.includes("ALL")) return DAYS;
+        return PERMISSIONS[currentUser].allowedDays;
+    }, [currentUser]);
+
+    // Filtered Purposes based on permissions
+    const availablePurposes = useMemo(() => {
+        if (!currentUser) return [];
+        const dayPurposes = PURPOSES_BY_DAY[selectedDay];
+        if (!PERMISSIONS[currentUser]) return dayPurposes;
+
+        if (PERMISSIONS[currentUser].allowedPurposes.includes("ALL")) return dayPurposes;
+
+        return dayPurposes.filter(p => PERMISSIONS[currentUser].allowedPurposes.includes(p));
+    }, [currentUser, selectedDay]);
+
+    // Ensure selectedDay is valid
+    useEffect(() => {
+        if (availableDays.length > 0 && !availableDays.includes(selectedDay)) {
+            setSelectedDay(availableDays[0]);
+        }
+    }, [availableDays, selectedDay]);
+
+    // Ensure selectedPurpose is valid
+    useEffect(() => {
+        if (availablePurposes.length > 0) {
+            if (!selectedPurpose || !availablePurposes.includes(selectedPurpose)) {
+                setSelectedPurpose(availablePurposes[0]);
+            }
+        }
+    }, [availablePurposes, selectedPurpose]);
 
     // Initialize Audio Context
     useEffect(() => {
@@ -256,14 +295,14 @@ export default function ScanPage() {
                                 onChange={(e) => setSelectedDay(Number(e.target.value) as Day)}
                                 className="flex-1 bg-white/10 border-none rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none appearance-none cursor-pointer hover:bg-white/20 transition-colors"
                             >
-                                {DAYS.map((d) => <option key={d} value={d} className="text-black">Day {d}</option>)}
+                                {availableDays.map((d) => <option key={d} value={d} className="text-black">Day {d}</option>)}
                             </select>
                             <select
                                 value={selectedPurpose}
                                 onChange={(e) => setSelectedPurpose(e.target.value)}
                                 className="flex-[2] bg-white/10 border-none rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none appearance-none cursor-pointer hover:bg-white/20 transition-colors"
                             >
-                                {PURPOSES_BY_DAY[selectedDay].map((p) => <option key={p} value={p} className="text-black">{p}</option>)}
+                                {availablePurposes.map((p) => <option key={p} value={p} className="text-black">{p}</option>)}
                             </select>
                         </div>
 
