@@ -5,4 +5,5 @@ export interface Nomination {
     contestant_photo?: string;
     category: string;
     votes: number;
+    gender?: 'male' | 'female';
 }
