@@ -13,6 +13,12 @@ interface DelegateDetails {
     email: string;
 }
 
+interface Roommate {
+    name: string;
+    rotasia_id: string;
+    phone?: string;
+}
+
 interface Coordinator {
     name: string;
     phone: string;
