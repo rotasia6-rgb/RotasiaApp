@@ -231,13 +231,6 @@ export default function VotingPage() {
 
     return (
         <div className="min-h-screen bg-[#0B0B1C] p-2 md:p-4 pb-20">
-            <header className="text-center py-6 md:py-8 mb-2 md:mb-6">
-                <h1 className="text-3xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#E91A83] to-[#4C24C1] uppercase tracking-tighter drop-shadow-sm">
-                    Best Outfit
-                </h1>
-                <p className="text-gray-400 mt-2 text-xs md:text-sm uppercase tracking-widest">Vote for the style icons</p>
-            </header>
-
             {isLoading ? (
                 <div className="flex justify-center p-12">
                     <div className="w-12 h-12 border-4 border-[#E91A83] border-t-transparent rounded-full animate-spin"></div>
