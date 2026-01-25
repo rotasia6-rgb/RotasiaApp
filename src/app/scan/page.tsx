@@ -276,7 +276,7 @@ export default function ScanPage() {
 
                     {/* Scanner - Takes optimized visual space */}
                     <div className="w-full aspect-square max-h-[50vh] bg-black rounded-3xl overflow-hidden shadow-2xl border border-white/10 relative group">
-                        <QRScanner onScan={handleScan} />
+                        <QRScanner onScan={handleScan} isPaused={isProcessing || !!feedback} />
                         <div className="absolute inset-0 border-[3px] border-white/20 rounded-3xl pointer-events-none group-hover:border-white/40 transition-colors"></div>
                         {/* Scan Area Indicators */}
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 border-2 border-white/50 rounded-2xl pointer-events-none">
