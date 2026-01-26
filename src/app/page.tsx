@@ -30,7 +30,7 @@ export default function Home() {
 
                     {/* Public Events Section */}
                     <div>
-                        <h2 className="text-2xl font-bold text-white mb-4 pl-2 border-l-4 border-pink-500">Event Highlights</h2>
+                        <h2 className="text-2xl font-bold text-white mb-4 pl-2 border-l-4 border-pink-500">Event Showcase</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
                             <Link href="/mr-ms-rotasia" className="group relative overflow-hidden rounded-xl bg-white/5 border border-white/10 p-6 hover:bg-white/10 transition-all hover:scale-[1.02]">

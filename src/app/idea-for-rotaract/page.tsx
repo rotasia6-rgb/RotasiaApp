@@ -35,15 +35,15 @@ export default function MyIdeaPage() {
 
             const payload = {
                 type: 'idea_rotaract',
-                fullName: formData.get('fullName'),
-                clubName: formData.get('clubName'),
-                clubType: formData.get('clubType'),
+                full_name: formData.get('fullName'),
+                club_name: formData.get('clubName'),
+                club_type: formData.get('clubType'),
                 district: formData.get('district'),
                 phone: formData.get('phone'),
                 email: formData.get('email'),
                 avenue: formData.get('avenue'),
-                projectName: formData.get('projectName'),
-                projectIdea: formData.get('projectIdea')
+                project_name: formData.get('projectName'),
+                project_idea: formData.get('projectIdea')
             };
 
             // Using the same supabase client, let's try to insert into 'registrations' if flexible, or 'idea_submissions'
@@ -65,21 +65,7 @@ export default function MyIdeaPage() {
                 .from('idea_submissions') // Assumed table
                 .insert([payload]);
 
-            if (error) {
-                // Fallback: If table doesn't exist, maybe just log it? 
-                console.warn("Supabase insert failed (table might be missing):", error);
-                // We'll throw only if it's a connection error, otherwise we let the user think it worked for this UI task?
-                // No, honesty is better. But I don't want to break the flow.
-                // I will assume the table exists as per previous context (idea-rotaract.html existed).
-                // If not, I'll catch it.
-                // actually the old html used a script.js that seemingly posted to the same place.
-            }
-
-            // Also post to Google Script for backup (logic from old script.js usually implies this)
-            /* 
-               const response = await fetch(GOOGLE_SCRIPT_URL, ...); 
-            */
-            // Skipping Google Script for Text-only forms to save time/complexity unless requested.
+            if (error) throw error;
 
             setSuccessMessage('Idea Submitted! Thank you for your contribution.');
             form.reset();

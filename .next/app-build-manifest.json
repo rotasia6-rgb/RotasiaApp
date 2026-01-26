@@ -6,52 +6,22 @@
       "static/css/app/layout.css",
       "static/chunks/app/layout.js"
     ],
-    "/login/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/login/page.js"
-    ],
     "/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/page.js"
-    ],
-    "/find-my-room/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/find-my-room/page.js"
-    ],
-    "/voting/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/voting/page.js"
-    ],
-    "/menu/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/menu/page.js"
-    ],
-    "/feedback/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/feedback/page.js"
-    ],
-    "/coming-soon/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/coming-soon/page.js"
-    ],
-    "/mr-ms-rotasia/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/css/app/mr-ms-rotasia/page.css",
-      "static/chunks/app/mr-ms-rotasia/page.js"
     ],
     "/open-mic/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/css/app/open-mic/page.css",
       "static/chunks/app/open-mic/page.js"
+    ],
+    "/mr-ms-rotasia/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/mr-ms-rotasia/page.css",
+      "static/chunks/app/mr-ms-rotasia/page.js"
     ],
     "/idea-for-rotaract/page": [
       "static/chunks/webpack.js",
@@ -62,6 +32,7 @@
     "/speed-networking/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
+      "static/css/app/speed-networking/page.css",
       "static/chunks/app/speed-networking/page.js"
     ]
   }

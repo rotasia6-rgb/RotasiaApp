@@ -1,7 +1,7 @@
 {
   "/page": "app/page.js",
-  "/open-mic/page": "app/open-mic/page.js",
-  "/idea-for-rotaract/page": "app/idea-for-rotaract/page.js",
   "/speed-networking/page": "app/speed-networking/page.js",
-  "/login/page": "app/login/page.js"
+  "/open-mic/page": "app/open-mic/page.js",
+  "/mr-ms-rotasia/page": "app/mr-ms-rotasia/page.js",
+  "/idea-for-rotaract/page": "app/idea-for-rotaract/page.js"
 }

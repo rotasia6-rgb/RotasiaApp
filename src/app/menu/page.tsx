@@ -39,6 +39,24 @@ export default function DelegateHubPage() {
                         </div>
                     </Link>
 
+                    {/* Speed Networking */}
+                    <Link href="/speed-networking" className="group">
+                        <div className="bg-gradient-to-r from-cyan-900/40 to-cyan-800/40 border border-cyan-500/30 p-6 rounded-2xl flex items-center justify-between backdrop-blur-md shadow-lg hover:shadow-cyan-500/20 hover:scale-[1.02] transition-all duration-300">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-cyan-500/20 rounded-xl group-hover:bg-cyan-500/30 transition-colors">
+                                    <Sparkles className="w-8 h-8 text-cyan-300" />
+                                </div>
+                                <div>
+                                    <h2 className="text-xl font-bold text-white">Speed Networking</h2>
+                                    <p className="text-cyan-200/60 text-sm">Connect with Rotaractors</p>
+                                </div>
+                            </div>
+                            <div className="bg-white/10 p-2 rounded-full opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all">
+                                <ArrowRight className="w-5 h-5 text-white" />
+                            </div>
+                        </div>
+                    </Link>
+
                     {/* Best Attire Voting */}
                     <Link href="/voting" className="group">
                         <div className="bg-gradient-to-r from-pink-900/40 to-pink-800/40 border border-pink-500/30 p-6 rounded-2xl flex items-center justify-between backdrop-blur-md shadow-lg hover:shadow-pink-500/20 hover:scale-[1.02] transition-all duration-300">

@@ -29,20 +29,18 @@ export default function OpenMicPage() {
         try {
             // Using assumed table 'open_mic_registrations'
             const payload = {
-                fullName: formData.get('fullName'),
-                clubName: formData.get('clubName'),
+                full_name: formData.get('fullName'),
+                club_name: formData.get('clubName'),
                 district: formData.get('district'),
                 phone: formData.get('phone'),
-                performanceType: formData.get('performanceType')
+                performance_type: formData.get('performanceType')
             };
 
             const { error } = await supabase
                 .from('open_mic_registrations')
                 .insert([payload]);
 
-            if (error) {
-                console.warn("Supabase insert failed (table might be missing):", error);
-            }
+            if (error) throw error;
 
             setSuccessMessage('Registered Successfully! We will contact you soon.');
             form.reset();
