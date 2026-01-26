@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 
 export default function DelegateGuard({ children }: { children: React.ReactNode }) {
@@ -26,7 +26,6 @@ export default function DelegateGuard({ children }: { children: React.ReactNode 
         setError('');
 
         try {
-            const supabase = createClient();
 
             // Check in registrations table (Mr Ms Rotasia) OR delegates table (Admin sync). 
             // We check 'delegates' first as it is the source of truth for the app usually.
