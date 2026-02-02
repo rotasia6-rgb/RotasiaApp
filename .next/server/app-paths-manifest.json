@@ -1,1 +1,9 @@
-{}
+{
+  "/open-mic/page": "app/open-mic/page.js",
+  "/mr-ms-rotasia/page": "app/mr-ms-rotasia/page.js",
+  "/page": "app/page.js",
+  "/idea-for-rotaract/page": "app/idea-for-rotaract/page.js",
+  "/speed-networking/page": "app/speed-networking/page.js",
+  "/coming-soon/page": "app/coming-soon/page.js",
+  "/find-my-room/page": "app/find-my-room/page.js"
+}

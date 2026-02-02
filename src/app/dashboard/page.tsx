@@ -3,7 +3,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { useScanRecords } from "@/hooks/useScanRecords";
 import { calculateStats } from "@/lib/stats";
-import { Users, UserCheck, Activity, Filter, ChevronDown, LogOut, Crown, MessageSquareQuote, FileText } from "lucide-react";
+import { Users, UserCheck, Activity, Filter, ChevronDown, LogOut, Crown, MessageSquareQuote, FileText, Camera } from "lucide-react";
 import { logoutAction } from "@/actions/auth";
 import { cn } from "@/lib/utils";
 import { DAYS, PURPOSES_BY_DAY, Day } from "@/lib/data";
@@ -233,6 +233,15 @@ export default function Dashboard() {
                             subtext="Event Showcase Entries"
                             onClick={() => window.location.href = '/dashboard/registrations'}
                             className="cursor-pointer hover:border-green-300 hover:shadow-lg transition-all active:scale-95"
+                        />
+
+                        <KpiCard
+                            title="Best Attire Wall"
+                            value="Manage"
+                            icon={<Camera className="w-6 h-6 text-pink-500" />}
+                            subtext="Approve User Photos"
+                            onClick={() => window.location.href = '/dashboard/best-attire'}
+                            className="cursor-pointer hover:border-pink-300 hover:shadow-lg transition-all active:scale-95"
                         />
                     </>
                 )}

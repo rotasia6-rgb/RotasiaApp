@@ -38,7 +38,7 @@ export default function Home() {
                                     <div className="p-3 rounded-lg bg-pink-500/20 text-pink-400 group-hover:bg-pink-500 group-hover:text-white transition-colors">👑</div>
                                     <div>
                                         <h3 className="text-lg font-bold text-white">Mr. & Ms. Rotasia</h3>
-                                        <p className="text-gray-400 text-xs">Register to be the face of Rotasia 2026</p>
+                                        <p className="text-gray-400 text-xs">Registration Closed</p>
                                     </div>
                                 </div>
                             </Link>

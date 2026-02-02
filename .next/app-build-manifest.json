@@ -1,3 +1,49 @@
 {
-  "pages": {}
+  "pages": {
+    "/layout": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/layout.css",
+      "static/chunks/app/layout.js"
+    ],
+    "/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/page.js"
+    ],
+    "/mr-ms-rotasia/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/mr-ms-rotasia/page.css",
+      "static/chunks/app/mr-ms-rotasia/page.js"
+    ],
+    "/open-mic/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/open-mic/page.css",
+      "static/chunks/app/open-mic/page.js"
+    ],
+    "/idea-for-rotaract/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/idea-for-rotaract/page.css",
+      "static/chunks/app/idea-for-rotaract/page.js"
+    ],
+    "/speed-networking/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/speed-networking/page.css",
+      "static/chunks/app/speed-networking/page.js"
+    ],
+    "/coming-soon/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/coming-soon/page.js"
+    ],
+    "/find-my-room/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/find-my-room/page.js"
+    ]
+  }
 }
