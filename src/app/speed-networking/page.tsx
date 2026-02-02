@@ -151,68 +151,19 @@ export default function SpeedNetworkingPage() {
                             <p className="text-gray-400 mt-2">Secure your spot for the speed networking session</p>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-5">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-2">Name</label>
-                                    <input type="text" name="fullName" required placeholder="Your Name"
-                                        className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all placeholder-gray-500" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-2">Club Name</label>
-                                    <input type="text" name="clubName" required placeholder="e.g. RAC Chennai"
-                                        className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all placeholder-gray-500" />
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-2">RI District</label>
-                                    <input type="text" name="district" required placeholder="e.g. 3232"
-                                        className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all placeholder-gray-500" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-2">Mobile Number</label>
-                                    <input type="tel" name="phone" required placeholder="+91 9876543210"
-                                        className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all placeholder-gray-500" />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">LinkedIn Profile (Optional)</label>
-                                <input type="url" name="linkedin" placeholder="https://linkedin.com/in/..."
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all placeholder-gray-500" />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">Profession / Field of Study</label>
-                                <input type="text" name="profession" required placeholder="e.g. Software Engineer / Student"
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all placeholder-gray-500" />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">Areas of Interest for Networking</label>
-                                <textarea name="interests" rows={3} required placeholder="e.g. Tech, Social Service, Entrepreneurship..."
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all placeholder-gray-500"></textarea>
-                            </div>
-
-                            <button type="submit" disabled={isLoading}
-                                className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold py-4 rounded-full shadow-lg transform hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wide mt-2">
-                                {isLoading ? 'Processing...' : 'Register for Speed Networking'}
-                            </button>
-
-                            {successMessage && (
-                                <div className="bg-green-500/20 border border-green-500/50 text-green-200 p-4 rounded-xl text-center font-semibold animate-fade-in">
-                                    {successMessage}
-                                </div>
-                            )}
-
-                            <div className="text-center mt-6">
+                        <div className="bg-red-500/10 border border-red-500/30 text-red-200 p-8 rounded-2xl text-center backdrop-blur-md">
+                            <div className="text-4xl mb-4">🚫</div>
+                            <h2 className="text-2xl font-bold mb-3 text-white">Registrations Closed</h2>
+                            <p className="text-gray-300">
+                                Thank you for your overwhelming response! <br />
+                                The registration for Speed Networking has officially ended.
+                            </p>
+                            <div className="mt-6">
                                 <Link href="/" className="text-gray-400 hover:text-white transition-colors text-sm underline decoration-white/20 hover:decoration-white/50">
                                     ← Back to Home
                                 </Link>
                             </div>
-                        </form>
+                        </div>
                     </div>
                 </div>
             </div>

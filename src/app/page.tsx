@@ -48,7 +48,7 @@ export default function Home() {
                                     <div className="p-3 rounded-lg bg-amber-500/20 text-amber-400 group-hover:bg-amber-500 group-hover:text-white transition-colors">🎤</div>
                                     <div>
                                         <h3 className="text-lg font-bold text-white">Open Mic Contest</h3>
-                                        <p className="text-gray-400 text-xs">Showcase your talent to the world</p>
+                                        <p className="text-gray-400 text-xs">Registration Closed</p>
                                     </div>
                                 </div>
                             </Link>
@@ -58,7 +58,7 @@ export default function Home() {
                                     <div className="p-3 rounded-lg bg-blue-500/20 text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition-colors">💡</div>
                                     <div>
                                         <h3 className="text-lg font-bold text-white">My Idea for Rotaract</h3>
-                                        <p className="text-gray-400 text-xs">Submit your project idea for India</p>
+                                        <p className="text-gray-400 text-xs">Registration Closed</p>
                                     </div>
                                 </div>
                             </Link>
@@ -68,7 +68,7 @@ export default function Home() {
                                     <div className="p-3 rounded-lg bg-cyan-500/20 text-cyan-400 group-hover:bg-cyan-500 group-hover:text-white transition-colors">🤝</div>
                                     <div>
                                         <h3 className="text-lg font-bold text-white">Speed Networking</h3>
-                                        <p className="text-gray-400 text-xs">Connect with delegates instantly</p>
+                                        <p className="text-gray-400 text-xs">Registration Closed</p>
                                     </div>
                                 </div>
                             </Link>

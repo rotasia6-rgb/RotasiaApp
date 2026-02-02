@@ -100,87 +100,25 @@ export default function MyIdeaPage() {
                     <p className="font-semibold text-white">🏆 The Best Project Idea will be announced!</p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">Name</label>
-                            <input type="text" name="fullName" required placeholder="Your Name"
-                                className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">Club Name</label>
-                            <input type="text" name="clubName" required placeholder="e.g. RAC Chennai"
-                                className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
-                        </div>
+                <div className="bg-red-500/10 border border-red-500/30 text-red-200 p-8 rounded-2xl text-center backdrop-blur-md">
+                    <div className="text-4xl mb-4">🚫</div>
+                    <h2 className="text-2xl md:text-3xl font-bold mb-3 text-white">Registrations Closed</h2>
+                    <p className="text-gray-300 text-lg">
+                        Thank you for your overwhelming response! <br />
+                        The registration application period for My Idea for Rotaract has officially ended.
+                    </p>
+                    <div className="mt-6 p-4 bg-white/5 rounded-xl border border-white/5">
+                        <p className="text-sm text-gray-400">
+                            The best project idea will be announced soon. Stay tuned.
+                        </p>
                     </div>
+                </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">Club Type</label>
-                            <select name="clubType" required defaultValue=""
-                                className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
-                                <option value="" disabled className="bg-gray-900">Select Type</option>
-                                <option value="College based" className="bg-gray-900">College based</option>
-                                <option value="Community based" className="bg-gray-900">Community based</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">RI District</label>
-                            <input type="text" name="district" required placeholder="e.g. 3232"
-                                className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">Mobile Number</label>
-                            <input type="tel" name="phone" required placeholder="+91 9876543210"
-                                className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">Email ID</label>
-                            <input type="email" name="email" required placeholder="email@example.com"
-                                className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Avenue of Service</label>
-                        <input type="text" name="avenue" required placeholder="Club / Community / Professional / International"
-                            className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Name of the Project</label>
-                        <input type="text" name="projectName" required placeholder="Project Title"
-                            className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Project Idea (250 words)</label>
-                        <textarea name="projectIdea" rows={6} required placeholder="Describe your idea..."
-                            className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"></textarea>
-                    </div>
-
-                    <button type="submit" disabled={isLoading}
-                        className="w-full bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-500 hover:to-teal-500 text-white font-bold py-4 rounded-full shadow-lg transform hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wide">
-                        {isLoading ? 'Processing...' : 'Submit Idea'}
-                    </button>
-
-                    {successMessage && (
-                        <div className="bg-green-500/20 border border-green-500/50 text-green-200 p-4 rounded-xl text-center font-semibold animate-fade-in">
-                            {successMessage}
-                        </div>
-                    )}
-
-                    <div className="text-center mt-6">
-                        <Link href="/" className="text-gray-400 hover:text-white transition-colors text-sm underline decoration-white/20 hover:decoration-white/50">
-                            ← Back to Home
-                        </Link>
-                    </div>
-
-                </form>
+                <div className="text-center mt-10">
+                    <Link href="/" className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all text-sm font-medium border border-white/10">
+                        <span>←</span> Back to Home
+                    </Link>
+                </div>
             </div>
         </div>
     );
