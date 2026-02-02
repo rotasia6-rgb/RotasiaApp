@@ -235,7 +235,7 @@ export default function BestAttirePage() {
                             {entries.map((item) => (
                                 <div
                                     key={item.id}
-                                    ref={el => itemRefs.current[item.id] = el}
+                                    ref={el => { itemRefs.current[item.id] = el; }}
                                     className={cn(
                                         "break-inside-avoid bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden hover:transform hover:-translate-y-1 transition-all duration-300 shadow-xl",
                                         highlightId === item.id ? "ring-2 ring-pink-500 shadow-[0_0_30px_rgba(233,26,131,0.3)] bg-white/10" : ""
