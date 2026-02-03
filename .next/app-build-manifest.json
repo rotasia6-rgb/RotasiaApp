@@ -11,6 +11,11 @@
       "static/css/app/layout.css",
       "static/chunks/app/layout.js"
     ],
+    "/coming-soon/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/coming-soon/page.js"
+    ],
     "/find-my-room/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",

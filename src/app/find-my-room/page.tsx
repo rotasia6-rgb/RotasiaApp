@@ -60,7 +60,25 @@ export default function RoomLookupPage() {
         setShowTravelForm(false);
 
         try {
-            // STEP 1: CHECK TRAVEL DETAILS (Independent of Delegate Status)
+            // STEP 1: CHECK DELEGATE STATUS FIRST
+            const { data: userRecords, error: userError } = await supabase
+                .from('delegates')
+                .select('*')
+                .ilike('email', trimmedEmail);
+
+            if (userError) throw userError;
+
+            if (!userRecords || userRecords.length === 0) {
+                // NOT a registered delegate -> Show Error
+                setError("This email is not registered as a delegate. Please use your registered email.");
+                setIsLoading(false);
+                return;
+            }
+
+            // Valid Delegate Found
+            const me = userRecords[0];
+
+            // STEP 2: CHECK TRAVEL DETAILS (Only for valid delegates)
             const { data: travelRecord, error: travelError } = await supabase
                 .from('travel_details')
                 .select('*')
@@ -68,14 +86,50 @@ export default function RoomLookupPage() {
                 .single();
 
             if (!travelRecord) {
-                // Case A: No travel details -> Show Form immediately
+                // Delegate exists but NO travel details -> Show Travel Form
                 setShowTravelForm(true);
                 setIsLoading(false);
                 return;
             }
 
-            // STEP 2: CHECK DELEGATE STATUS (If travel details exist)
-            await fetchDelegateDetails(trimmedEmail);
+            // STEP 3: SHOW ROOM ALLOCATION (Delegate + Travel exists)
+            // Just populate the data to show the dashboard
+            const myDetails = {
+                name: me.name,
+                club_name: me.club_name || "N/A",
+                district: me.district || "N/A",
+                room_number: me.room_number || "To be assigned",
+                rotasia_id: me.rotasia_id || me.id.substring(0, 8).toUpperCase(),
+                email: me.email
+            };
+            setMyData(myDetails);
+
+            // Fetch Roommates & Coordinator if room assigned
+            if (me.room_number && me.room_number !== "To be assigned") {
+                // Roommates
+                const { data: roomRecords } = await supabase
+                    .from('delegates')
+                    .select('name, rotasia_id, phone')
+                    .eq('room_number', me.room_number)
+                    .neq('email', trimmedEmail);
+
+                if (roomRecords) {
+                    setRoommates(roomRecords.map(r => ({
+                        name: r.name,
+                        rotasia_id: r.rotasia_id || "N/A",
+                        phone: r.phone
+                    })));
+                }
+
+                // Coordinator
+                const { data: coordData } = await supabase
+                    .from('room_coordinators')
+                    .select('name, phone')
+                    .eq('room_number', me.room_number)
+                    .single();
+
+                if (coordData) setCoordinator(coordData);
+            }
 
         } catch (err: any) {
             console.error(err);
@@ -85,58 +139,11 @@ export default function RoomLookupPage() {
         }
     };
 
+    // Helper removed as logic is now inline or simplified
     const fetchDelegateDetails = async (userEmail: string) => {
-        const { data: userRecords, error: userError } = await supabase
-            .from('delegates')
-            .select('*')
-            .ilike('email', userEmail);
-
-        if (userError) throw userError;
-
-        if (!userRecords || userRecords.length === 0) {
-            // Valid Travel Details, but NOT a delegate (or email mismatch in delegates table)
-            // Error is NOT set here, instead we just leave myData null to show "Room not allotted"
-            return;
-        }
-
-        const me = userRecords[0];
-        const myDetails = {
-            // id: me.id, // Removed as per interface update
-            name: me.name,
-            club_name: me.club_name || "N/A",
-            district: me.district || "N/A",
-            room_number: me.room_number || "To be assigned",
-            rotasia_id: me.rotasia_id || me.id.substring(0, 8).toUpperCase(),
-            email: me.email
-        };
-        setMyData(myDetails);
-
-        // Fetch Roommates & Coordinator if room assigned
-        if (me.room_number && me.room_number !== "To be assigned") {
-            // Roommates
-            const { data: roomRecords } = await supabase
-                .from('delegates')
-                .select('name, rotasia_id, phone')
-                .eq('room_number', me.room_number)
-                .neq('email', userEmail);
-
-            if (roomRecords) {
-                setRoommates(roomRecords.map(r => ({
-                    name: r.name,
-                    rotasia_id: r.rotasia_id || "N/A",
-                    phone: r.phone
-                })));
-            }
-
-            // Coordinator
-            const { data: coordData } = await supabase
-                .from('room_coordinators')
-                .select('name, phone')
-                .eq('room_number', me.room_number)
-                .single();
-
-            if (coordData) setCoordinator(coordData);
-        }
+        // Kept for compatibility if called elsewhere, or can be removed if unused.
+        // For this refactor, we incorporated the logic into handleSearch directly for clarity of flow.
+        return;
     };
 
     const handleTravelSubmit = async (e: React.FormEvent) => {
@@ -164,7 +171,55 @@ export default function RoomLookupPage() {
 
             // Success! Hide form and proceed to check room/delegate info
             setShowTravelForm(false);
-            await fetchDelegateDetails(trimmedEmail);
+            // Re-run the room fetching logic manually or recursively call handleSearch if possible (but e is needed)
+            // For simplicity, we can just reload the page or better: manually fetch the data again here.
+            // Since we know they are a delegate (checked in step 1), we can just fetch and show.
+
+            // Re-fetch delegate details
+            const { data: userRecords } = await supabase
+                .from('delegates')
+                .select('*')
+                .ilike('email', trimmedEmail);
+
+            if (userRecords && userRecords.length > 0) {
+                const me = userRecords[0];
+                const myDetails = {
+                    name: me.name,
+                    club_name: me.club_name || "N/A",
+                    district: me.district || "N/A",
+                    room_number: me.room_number || "To be assigned",
+                    rotasia_id: me.rotasia_id || me.id.substring(0, 8).toUpperCase(),
+                    email: me.email
+                };
+                setMyData(myDetails);
+
+                // Fetch Roommates & Coordinator if room assigned
+                if (me.room_number && me.room_number !== "To be assigned") {
+                    // Roommates
+                    const { data: roomRecords } = await supabase
+                        .from('delegates')
+                        .select('name, rotasia_id, phone')
+                        .eq('room_number', me.room_number)
+                        .neq('email', trimmedEmail);
+
+                    if (roomRecords) {
+                        setRoommates(roomRecords.map(r => ({
+                            name: r.name,
+                            rotasia_id: r.rotasia_id || "N/A",
+                            phone: r.phone
+                        })));
+                    }
+
+                    // Coordinator
+                    const { data: coordData } = await supabase
+                        .from('room_coordinators')
+                        .select('name, phone')
+                        .eq('room_number', me.room_number)
+                        .single();
+
+                    if (coordData) setCoordinator(coordData);
+                }
+            }
 
         } catch (err) {
             console.error("Error saving travel details:", err);
