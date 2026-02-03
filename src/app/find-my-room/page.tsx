@@ -34,6 +34,7 @@ export default function RoomLookupPage() {
     const [error, setError] = useState<string | null>(null);
     const [myData, setMyData] = useState<DelegateDetails | null>(null);
     const [roommates, setRoommates] = useState<Roommate[]>([]);
+    const [hasSearched, setHasSearched] = useState(false);
     const [coordinator, setCoordinator] = useState<Coordinator | null>(null);
 
     // Travel Details State
@@ -59,6 +60,7 @@ export default function RoomLookupPage() {
         setRoommates([]);
         setCoordinator(null);
         setShowTravelForm(false);
+        setHasSearched(false);
 
         try {
             // STEP 1: CHECK DELEGATE STATUS FIRST
@@ -105,6 +107,7 @@ export default function RoomLookupPage() {
                 hotel: me.hotel || "TBD"
             };
             setMyData(myDetails);
+            setHasSearched(true);
 
             // Fetch Roommates & Coordinator if room assigned
             if (me.room_number && me.room_number !== "To be assigned") {
@@ -195,6 +198,7 @@ export default function RoomLookupPage() {
                     hotel: me.hotel || "TBD"
                 };
                 setMyData(myDetails);
+                setHasSearched(true);
 
                 // Fetch Roommates & Coordinator if room assigned
                 if (me.room_number && me.room_number !== "To be assigned") {
@@ -269,7 +273,7 @@ export default function RoomLookupPage() {
                     )}
 
                     {/* Result: Room Not Allotted / Not Found */}
-                    {(!isLoading && !showTravelForm && !myData && !error && email && !isLoading) && (
+                    {(!isLoading && !showTravelForm && !myData && !error && hasSearched && !isLoading) && (
                         <div className="text-center py-8 animate-in fade-in slide-in-from-bottom-4">
                             <div className="bg-orange-500/20 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
                                 <Home className="w-8 h-8 text-orange-400" />
@@ -283,6 +287,7 @@ export default function RoomLookupPage() {
                                     setMyData(null);
                                     setEmail('');
                                     setError(null);
+                                    setHasSearched(false);
                                 }}
                                 className="bg-white/10 hover:bg-white/20 text-white px-6 py-2 rounded-xl transition-colors"
                             >
