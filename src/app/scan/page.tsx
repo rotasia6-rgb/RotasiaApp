@@ -113,7 +113,9 @@ export default function ScanPage() {
 
         try {
             // 2. Local Validation (Instant Fail)
-            const delegate = delegates.find((d) => d.id === cleanId);
+            // Look up by Rotasia ID (e.g. ROT1001) as requested
+            const delegate = delegates.find((d) => d.rotasia_id === cleanId);
+
             if (!delegate) {
                 playBeep("error");
                 setFeedback({ type: "error", message: "Invalid ID", subtext: `${cleanId} not found` });
