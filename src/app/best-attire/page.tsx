@@ -255,7 +255,7 @@ export default function BestAttirePage() {
                             >
                                 <div className="relative aspect-[3/4]">
                                     <img
-                                        src={getOptimizedImageUrl(item.contestant_photo)}
+                                        src={getOptimizedImageUrl(item.contestant_photo || null)}
                                         alt={item.contestant_name}
                                         className="w-full h-full object-cover"
                                         loading="lazy"

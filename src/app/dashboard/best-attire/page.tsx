@@ -136,7 +136,7 @@ export default function BestAttireManagementPage() {
                             {/* Image Container */}
                             <div className="relative aspect-[3/4] bg-gray-100 overflow-hidden">
                                 <img
-                                    src={getOptimizedImageUrl(item.contestant_photo)}
+                                    src={getOptimizedImageUrl(item.contestant_photo || null)}
                                     alt={item.caption || "Best Attire Entry"}
                                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                                     referrerPolicy="no-referrer"
