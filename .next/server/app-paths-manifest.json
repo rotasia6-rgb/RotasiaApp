@@ -1,22 +1,5 @@
 {
-  "/_not-found": "app/_not-found.js",
-  "/best-attire/page": "app/best-attire/page.js",
-  "/coming-soon/page": "app/coming-soon/page.js",
   "/dashboard/best-attire/page": "app/dashboard/best-attire/page.js",
-  "/dashboard/feedback/page": "app/dashboard/feedback/page.js",
-  "/dashboard/page": "app/dashboard/page.js",
-  "/feedback/page": "app/feedback/page.js",
-  "/dashboard/voting/page": "app/dashboard/voting/page.js",
-  "/find-my-room/page": "app/find-my-room/page.js",
-  "/login/page": "app/login/page.js",
-  "/dashboard/registrations/page": "app/dashboard/registrations/page.js",
-  "/feedback/wall/page": "app/feedback/wall/page.js",
-  "/idea-for-rotaract/page": "app/idea-for-rotaract/page.js",
-  "/open-mic/page": "app/open-mic/page.js",
-  "/mr-ms-rotasia/page": "app/mr-ms-rotasia/page.js",
-  "/menu/page": "app/menu/page.js",
-  "/page": "app/page.js",
-  "/speed-networking/page": "app/speed-networking/page.js",
-  "/voting/page": "app/voting/page.js",
-  "/scan/page": "app/scan/page.js"
+  "/best-attire/page": "app/best-attire/page.js",
+  "/dashboard/page": "app/dashboard/page.js"
 }

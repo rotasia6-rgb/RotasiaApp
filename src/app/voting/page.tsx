@@ -16,6 +16,7 @@ export default function VotingPage() {
             const { data, error } = await supabase
                 .from('nominations')
                 .select('*')
+                .eq('status', 'approved')
                 .order('votes', { ascending: false });
 
             if (error) throw error;
@@ -38,7 +39,8 @@ export default function VotingPage() {
                 {
                     event: '*',
                     schema: 'public',
-                    table: 'nominations'
+                    table: 'nominations',
+                    filter: 'status=eq.approved'
                 },
                 () => {
                     fetchNominations();

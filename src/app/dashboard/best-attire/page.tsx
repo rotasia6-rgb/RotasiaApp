@@ -2,11 +2,28 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { AttireEntry } from "@/types/attire";
+import { Nomination } from "@/types/voting";
 import { Search, CheckCircle, XCircle, Clock, Image as ImageIcon } from "lucide-react";
 
+// Helper to transform Google Drive URLs to direct image links
+// Helper to transform Google Drive URLs to direct image links
+const getOptimizedImageUrl = (url: string | null) => {
+    if (!url) return '';
+
+    // Handle Google Drive URLs
+    if (url.includes('drive.google.com')) {
+        // Extract ID
+        const idMatch = url.match(/[-\w]{25,}/);
+        if (idMatch) {
+            return `https://lh3.googleusercontent.com/d/${idMatch[0]}`;
+        }
+    }
+
+    return url;
+};
+
 export default function BestAttireManagementPage() {
-    const [entries, setEntries] = useState<AttireEntry[]>([]);
+    const [entries, setEntries] = useState<Nomination[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
 
@@ -14,12 +31,12 @@ export default function BestAttireManagementPage() {
         setIsLoading(true);
         try {
             const { data, error } = await supabase
-                .from('best_attire_entries')
+                .from('nominations')
                 .select('*')
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
-            setEntries((data as AttireEntry[]) || []);
+            setEntries((data as Nomination[]) || []);
         } catch (error) {
             console.error('Error fetching attire entries:', error);
         } finally {
@@ -39,7 +56,7 @@ export default function BestAttireManagementPage() {
             );
 
             const { error } = await supabase
-                .from('best_attire_entries')
+                .from('nominations')
                 .update({ status: newStatus })
                 .eq('id', id);
 
@@ -119,15 +136,26 @@ export default function BestAttireManagementPage() {
                             {/* Image Container */}
                             <div className="relative aspect-[3/4] bg-gray-100 overflow-hidden">
                                 <img
-                                    src={item.image_url}
+                                    src={getOptimizedImageUrl(item.contestant_photo)}
                                     alt={item.caption || "Best Attire Entry"}
                                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                    referrerPolicy="no-referrer"
+                                    loading="lazy"
+                                    onError={(e) => {
+                                        const target = e.target as HTMLImageElement;
+                                        if (target.src.includes('lh3.googleusercontent.com') && item.contestant_photo) {
+                                            const idMatch = item.contestant_photo.match(/[-\w]{25,}/);
+                                            if (idMatch) {
+                                                target.src = `https://drive.google.com/uc?export=view&id=${idMatch[0]}`;
+                                            }
+                                        }
+                                    }}
                                 />
                                 <div className="absolute top-2 right-2">
                                     {getStatusBadge(item.status)}
                                 </div>
                                 <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 to-transparent p-4 pt-10">
-                                    <h3 className="text-white font-bold truncate">{item.user_name}</h3>
+                                    <h3 className="text-white font-bold truncate">{item.contestant_name}</h3>
                                     {item.caption && <p className="text-gray-200 text-xs truncate opacity-90">{item.caption}</p>}
                                 </div>
                             </div>
