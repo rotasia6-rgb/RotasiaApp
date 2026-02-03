@@ -116,6 +116,8 @@ export default function RoomLookupPage() {
                     .from('delegates')
                     .select('name, rotasia_id, phone')
                     .eq('room_number', me.room_number)
+                    // Fix: Filter by Hotel too to avoid Room 404 from other hotels showing up
+                    .eq('hotel', me.hotel)
                     .neq('email', trimmedEmail);
 
                 if (roomRecords) {
@@ -207,6 +209,8 @@ export default function RoomLookupPage() {
                         .from('delegates')
                         .select('name, rotasia_id, phone')
                         .eq('room_number', me.room_number)
+                        // Fix: Filter by Hotel too
+                        .eq('hotel', me.hotel)
                         .neq('email', trimmedEmail);
 
                     if (roomRecords) {
@@ -476,9 +480,35 @@ export default function RoomLookupPage() {
                                         <div>
                                             <span className="font-bold text-lg block leading-none">Room Allocation</span>
                                             {myData.hotel && (
-                                                <span className="text-sm text-purple-200 block mt-1 font-medium">{myData.hotel}</span>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <span className="text-sm text-purple-200 font-medium">{myData.hotel}</span>
+                                                    {(() => {
+                                                        const cleanHotel = myData.hotel.toLowerCase();
+                                                        let mapLink = null;
+
+                                                        if (cleanHotel.includes("esthell")) mapLink = "https://maps.app.goo.gl/Dx6xmqwWURMSyqLU7";
+                                                        else if (cleanHotel.includes("mermaid")) mapLink = "https://maps.app.goo.gl/6NMeEtLgP45Joi348";
+                                                        else if (cleanHotel.includes("southern")) mapLink = "https://maps.app.goo.gl/QWyrKSFyXs3ECzh1A";
+                                                        else if (cleanHotel.includes("golden")) mapLink = "https://maps.app.goo.gl/ebnnrFYBGpLsbsv56";
+
+                                                        if (mapLink) {
+                                                            return (
+                                                                <a
+                                                                    href={mapLink}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="bg-purple-500/20 hover:bg-purple-500/40 text-purple-200 p-1.5 rounded-full transition-colors"
+                                                                    title="View on Google Maps"
+                                                                >
+                                                                    <MapPin className="w-3.5 h-3.5" />
+                                                                </a>
+                                                            );
+                                                        }
+                                                        return null;
+                                                    })()}
+                                                </div>
                                             )}
-                                            <span className="text-xs text-purple-300 uppercase tracking-widest">Confirmed</span>
+                                            <span className="text-xs text-purple-300 uppercase tracking-widest mt-1 block">Confirmed</span>
                                         </div>
                                     </div>
                                     <span className="text-5xl font-black text-white tracking-tight drop-shadow-md">{myData.room_number}</span>
@@ -522,10 +552,19 @@ export default function RoomLookupPage() {
                                     onClick={() => {
                                         setMyData(null);
                                         setEmail('');
+                                        setError(null);
+                                        setHasSearched(false);
                                     }}
                                     className="text-gray-500 hover:text-white text-sm underline"
                                 >
                                     Check another ID
+                                </button>
+                                {/* Debug Helper - Remove in prod */}
+                                <button
+                                    onClick={() => setMyData(prev => prev ? ({ ...prev, hotel: "Esthell Village Resort" }) : null)}
+                                    className="block mx-auto mt-4 text-xs text-gray-700 hover:text-gray-500"
+                                >
+                                    [Debug: Force Hotel]
                                 </button>
                             </div>
 
