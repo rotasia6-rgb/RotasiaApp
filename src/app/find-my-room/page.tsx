@@ -483,7 +483,7 @@ export default function RoomLookupPage() {
                                                 <div className="flex items-center gap-2 mt-1">
                                                     <span className="text-sm text-purple-200 font-medium">{myData.hotel}</span>
                                                     {(() => {
-                                                        const cleanHotel = myData.hotel.toLowerCase();
+                                                        const cleanHotel = myData.hotel?.toLowerCase().trim() || "";
                                                         let mapLink = null;
 
                                                         if (cleanHotel.includes("esthell")) mapLink = "https://maps.app.goo.gl/Dx6xmqwWURMSyqLU7";
@@ -497,10 +497,12 @@ export default function RoomLookupPage() {
                                                                     href={mapLink}
                                                                     target="_blank"
                                                                     rel="noopener noreferrer"
-                                                                    className="bg-purple-500/20 hover:bg-purple-500/40 text-purple-200 p-1.5 rounded-full transition-colors"
-                                                                    title="View on Google Maps"
+                                                                    className="flex items-center gap-1 bg-white/20 hover:bg-white/30 text-white text-xs px-2 py-1 rounded-full transition-colors border border-white/10"
+                                                                    title="Get Directions"
                                                                 >
-                                                                    <MapPin className="w-3.5 h-3.5" />
+                                                                    {/* Use Navigation icon for clearer 'Direction' intent */}
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-navigation"><polygon points="3 11 22 2 13 21 11 13 3 11" /></svg>
+                                                                    <span>Map</span>
                                                                 </a>
                                                             );
                                                         }
@@ -558,13 +560,6 @@ export default function RoomLookupPage() {
                                     className="text-gray-500 hover:text-white text-sm underline"
                                 >
                                     Check another ID
-                                </button>
-                                {/* Debug Helper - Remove in prod */}
-                                <button
-                                    onClick={() => setMyData(prev => prev ? ({ ...prev, hotel: "Esthell Village Resort" }) : null)}
-                                    className="block mx-auto mt-4 text-xs text-gray-700 hover:text-gray-500"
-                                >
-                                    [Debug: Force Hotel]
                                 </button>
                             </div>
 
