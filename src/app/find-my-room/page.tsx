@@ -4,9 +4,10 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import DelegateGuard from "@/components/DelegateGuard";
-import { Search, User, MapPin, Home, Users, Hash, Loader2, Phone } from "lucide-react";
+import { Search, User, MapPin, Home, Users, Hash, Loader2, Phone, Plane, Calendar, Save } from "lucide-react";
 
 interface DelegateDetails {
+    // id: string; // Not needed as we use email
     name: string;
     club_name: string;
     district: string;
@@ -34,76 +35,142 @@ export default function RoomLookupPage() {
     const [roommates, setRoommates] = useState<Roommate[]>([]);
     const [coordinator, setCoordinator] = useState<Coordinator | null>(null);
 
+    // Travel Details State
+    const [showTravelForm, setShowTravelForm] = useState(false);
+    const [travelData, setTravelData] = useState({
+        arrival_date: '',
+        arrival_time: '',
+        arrival_mode: '',
+        departure_date: '',
+        departure_time: '',
+        departure_mode: ''
+    });
+    const [isSavingTravel, setIsSavingTravel] = useState(false);
+
     const handleSearch = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!email.trim()) return;
+        const trimmedEmail = email.trim();
+        if (!trimmedEmail) return;
 
         setIsLoading(true);
         setError(null);
         setMyData(null);
         setRoommates([]);
         setCoordinator(null);
+        setShowTravelForm(false);
 
         try {
-            // 1. Find the user by Email
-            const { data: userRecords, error: userError } = await supabase
-                .from('delegates')
+            // STEP 1: CHECK TRAVEL DETAILS (Independent of Delegate Status)
+            const { data: travelRecord, error: travelError } = await supabase
+                .from('travel_details')
                 .select('*')
-                .ilike('email', email.trim());
+                .eq('email', trimmedEmail)
+                .single();
 
-            if (userError) throw userError;
-
-            if (!userRecords || userRecords.length === 0) {
-                setError("No registration found with this email. Please check and try again.");
+            if (!travelRecord) {
+                // Case A: No travel details -> Show Form immediately
+                setShowTravelForm(true);
+                setIsLoading(false);
                 return;
             }
 
-            const me = userRecords[0];
-            setMyData({
-                name: me.name,
-                club_name: me.club_name || "N/A",
-                district: me.district || "N/A",
-                room_number: me.room_number || "To be assigned",
-                rotasia_id: me.rotasia_id || me.id.substring(0, 8).toUpperCase(),
-                email: me.email
-            });
-
-            // 2. If room assigned, find roommates and coordinator
-            if (me.room_number) {
-                // Fetch Roommates
-                const { data: roomRecords, error: roomError } = await supabase
-                    .from('delegates')
-                    .select('name, rotasia_id, phone')
-                    .eq('room_number', me.room_number)
-                    .neq('email', email.trim());
-
-                if (roomError) throw roomError;
-
-                if (roomRecords) {
-                    setRoommates(roomRecords.map(r => ({
-                        name: r.name,
-                        rotasia_id: r.rotasia_id || "N/A",
-                        phone: r.phone
-                    })));
-                }
-
-                // Fetch Coordinator
-                const { data: coordData, error: coordError } = await supabase
-                    .from('room_coordinators')
-                    .select('name, phone')
-                    .eq('room_number', me.room_number)
-                    .single();
-
-                if (!coordError && coordData) {
-                    setCoordinator(coordData);
-                }
-            }
+            // STEP 2: CHECK DELEGATE STATUS (If travel details exist)
+            await fetchDelegateDetails(trimmedEmail);
 
         } catch (err: any) {
             console.error(err);
             setError("Something went wrong. Please try again later.");
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const fetchDelegateDetails = async (userEmail: string) => {
+        const { data: userRecords, error: userError } = await supabase
+            .from('delegates')
+            .select('*')
+            .ilike('email', userEmail);
+
+        if (userError) throw userError;
+
+        if (!userRecords || userRecords.length === 0) {
+            // Valid Travel Details, but NOT a delegate (or email mismatch in delegates table)
+            // Error is NOT set here, instead we just leave myData null to show "Room not allotted"
+            return;
+        }
+
+        const me = userRecords[0];
+        const myDetails = {
+            // id: me.id, // Removed as per interface update
+            name: me.name,
+            club_name: me.club_name || "N/A",
+            district: me.district || "N/A",
+            room_number: me.room_number || "To be assigned",
+            rotasia_id: me.rotasia_id || me.id.substring(0, 8).toUpperCase(),
+            email: me.email
+        };
+        setMyData(myDetails);
+
+        // Fetch Roommates & Coordinator if room assigned
+        if (me.room_number && me.room_number !== "To be assigned") {
+            // Roommates
+            const { data: roomRecords } = await supabase
+                .from('delegates')
+                .select('name, rotasia_id, phone')
+                .eq('room_number', me.room_number)
+                .neq('email', userEmail);
+
+            if (roomRecords) {
+                setRoommates(roomRecords.map(r => ({
+                    name: r.name,
+                    rotasia_id: r.rotasia_id || "N/A",
+                    phone: r.phone
+                })));
+            }
+
+            // Coordinator
+            const { data: coordData } = await supabase
+                .from('room_coordinators')
+                .select('name, phone')
+                .eq('room_number', me.room_number)
+                .single();
+
+            if (coordData) setCoordinator(coordData);
+        }
+    };
+
+    const handleTravelSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const trimmedEmail = email.trim();
+        if (!trimmedEmail) return;
+
+        setIsSavingTravel(true);
+        try {
+            // Combine date and time for DB
+            const finalArrival = `${travelData.arrival_date}T${travelData.arrival_time}`;
+            const finalDeparture = `${travelData.departure_date}T${travelData.departure_time}`;
+
+            const { error } = await supabase
+                .from('travel_details')
+                .insert({
+                    email: trimmedEmail,
+                    arrival_date: finalArrival,
+                    arrival_mode: travelData.arrival_mode,
+                    departure_date: finalDeparture,
+                    departure_mode: travelData.departure_mode
+                });
+
+            if (error) throw error;
+
+            // Success! Hide form and proceed to check room/delegate info
+            setShowTravelForm(false);
+            await fetchDelegateDetails(trimmedEmail);
+
+        } catch (err) {
+            console.error("Error saving travel details:", err);
+            setError("Failed to save travel details. Please try again.");
+        } finally {
+            setIsSavingTravel(false);
         }
     };
 
@@ -123,31 +190,167 @@ export default function RoomLookupPage() {
                     </div>
 
                     <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-3xl p-6 shadow-2xl">
-                        <form onSubmit={handleSearch} className="flex gap-2 mb-6">
-                            <input
-                                type="email"
-                                placeholder="Enter your email address..."
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                                required
-                            />
-                            <button
-                                type="submit"
-                                disabled={isLoading}
-                                className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-4 py-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Search className="w-6 h-6" />}
-                            </button>
-                        </form>
+                        {/* Always show search form unless we have successful data to display OR are showing the travel form */}
+                        {(!myData && !showTravelForm && !roommates.length && !error) && (
+                            <form onSubmit={handleSearch} className="flex gap-2 mb-6">
+                                <input
+                                    type="email"
+                                    placeholder="Enter your email address..."
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                                    required
+                                />
+                                <button
+                                    type="submit"
+                                    disabled={isLoading}
+                                    className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-4 py-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Search className="w-6 h-6" />}
+                                </button>
+                            </form>
+                        )}
+
+                        {/* Result: Room Not Allotted / Not Found */}
+                        {(!isLoading && !showTravelForm && !myData && !error && email && !isLoading) && (
+                            <div className="text-center py-8 animate-in fade-in slide-in-from-bottom-4">
+                                <div className="bg-orange-500/20 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                                    <Home className="w-8 h-8 text-orange-400" />
+                                </div>
+                                <h2 className="text-xl font-bold text-white mb-2">Room Not Allotted</h2>
+                                <p className="text-gray-400 mb-6">
+                                    We have received your travel details, but no room allocation was found for <span className="text-white font-mono">{email}</span>.
+                                </p>
+                                <button
+                                    onClick={() => {
+                                        setMyData(null);
+                                        setEmail('');
+                                        setError(null);
+                                    }}
+                                    className="bg-white/10 hover:bg-white/20 text-white px-6 py-2 rounded-xl transition-colors"
+                                >
+                                    Check another ID
+                                </button>
+                            </div>
+                        )}
 
                         {error && (
                             <div className="bg-red-500/10 border border-red-500/20 text-red-200 p-4 rounded-xl text-center mb-4 text-sm animate-in fade-in slide-in-from-top-2">
                                 {error}
+                                <button
+                                    onClick={() => setError(null)}
+                                    className="block w-full mt-2 text-xs text-red-300 hover:text-white underline"
+                                >
+                                    Try Again
+                                </button>
                             </div>
                         )}
 
-                        {myData && (
+                        {showTravelForm && (
+                            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <div className="text-center">
+                                    <h2 className="text-xl font-bold text-white mb-1">Welcome!</h2>
+                                    <p className="text-sm text-gray-300">Please provide your travel details to view your room allocation.</p>
+                                </div>
+
+                                <form onSubmit={handleTravelSubmit} className="space-y-4">
+                                    {/* Arrival */}
+                                    <div className="bg-white/5 p-4 rounded-xl border border-white/10">
+                                        <div className="flex items-center gap-2 mb-3 text-blue-300 font-medium">
+                                            <Plane className="w-4 h-4" /> Arrival Details
+                                        </div>
+                                        <div className="space-y-3">
+                                            <div className="flex gap-2">
+                                                <div className="flex-1">
+                                                    <label className="block text-xs text-gray-400 mb-1">Date</label>
+                                                    <input
+                                                        type="date"
+                                                        required
+                                                        value={travelData.arrival_date}
+                                                        onChange={(e) => setTravelData({ ...travelData, arrival_date: e.target.value })}
+                                                        className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                                                    />
+                                                </div>
+                                                <div className="flex-1">
+                                                    <label className="block text-xs text-gray-400 mb-1">Time</label>
+                                                    <input
+                                                        type="time"
+                                                        required
+                                                        value={travelData.arrival_time}
+                                                        onChange={(e) => setTravelData({ ...travelData, arrival_time: e.target.value })}
+                                                        className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs text-gray-400 mb-1">Mode of Transport</label>
+                                                <input
+                                                    type="text"
+                                                    placeholder="e.g. Flight, Train, Bus..."
+                                                    required
+                                                    value={travelData.arrival_mode}
+                                                    onChange={(e) => setTravelData({ ...travelData, arrival_mode: e.target.value })}
+                                                    className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none placeholder-gray-600"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Departure */}
+                                    <div className="bg-white/5 p-4 rounded-xl border border-white/10">
+                                        <div className="flex items-center gap-2 mb-3 text-purple-300 font-medium">
+                                            <Calendar className="w-4 h-4" /> Departure Details
+                                        </div>
+                                        <div className="space-y-3">
+                                            <div className="flex gap-2">
+                                                <div className="flex-1">
+                                                    <label className="block text-xs text-gray-400 mb-1">Date</label>
+                                                    <input
+                                                        type="date"
+                                                        required
+                                                        value={travelData.departure_date}
+                                                        onChange={(e) => setTravelData({ ...travelData, departure_date: e.target.value })}
+                                                        className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-purple-500 outline-none"
+                                                    />
+                                                </div>
+                                                <div className="flex-1">
+                                                    <label className="block text-xs text-gray-400 mb-1">Time</label>
+                                                    <input
+                                                        type="time"
+                                                        required
+                                                        value={travelData.departure_time}
+                                                        onChange={(e) => setTravelData({ ...travelData, departure_time: e.target.value })}
+                                                        className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-purple-500 outline-none"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs text-gray-400 mb-1">Mode of Transport</label>
+                                                <input
+                                                    type="text"
+                                                    placeholder="e.g. Flight, Train, Bus..."
+                                                    required
+                                                    value={travelData.departure_mode}
+                                                    onChange={(e) => setTravelData({ ...travelData, departure_mode: e.target.value })}
+                                                    className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-purple-500 outline-none placeholder-gray-600"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        type="submit"
+                                        disabled={isSavingTravel}
+                                        className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-50"
+                                    >
+                                        {isSavingTravel ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                                        Save & View Room
+                                    </button>
+                                </form>
+                            </div>
+                        )}
+
+                        {myData && !showTravelForm && (
                             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                                 {/* Personal Info Card */}
                                 <div className="bg-gradient-to-br from-white/10 to-transparent p-5 rounded-2xl border border-white/10">
@@ -249,6 +452,18 @@ export default function RoomLookupPage() {
                                     )}
                                 </div>
 
+                                <div className="text-center pt-4">
+                                    <button
+                                        onClick={() => {
+                                            setMyData(null);
+                                            setEmail('');
+                                        }}
+                                        className="text-gray-500 hover:text-white text-sm underline"
+                                    >
+                                        Check another ID
+                                    </button>
+                                </div>
+
                             </div>
                         )}
                     </div>
@@ -257,3 +472,4 @@ export default function RoomLookupPage() {
         </DelegateGuard>
     );
 }
+

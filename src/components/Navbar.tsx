@@ -17,9 +17,9 @@ export default function Navbar() {
         }
     }, []);
 
-    // Routes where the Navbar should be hidden
-    // We hide it on the public form (/), login page, and public feedback pages
-    if (pathname === "/" || pathname === "/login" || pathname === "/feedback" || pathname === "/feedback/wall" || pathname === "/voting" || pathname === "/find-my-room") {
+    // Only show Navbar on dashboard pages (Organizer Pages)
+    // The user requested to remove the blue header from all delegate pages.
+    if (!pathname?.startsWith("/dashboard")) {
         return null;
     }
 

@@ -1,5 +1,5 @@
 {
-  "/dashboard/best-attire/page": "app/dashboard/best-attire/page.js",
-  "/best-attire/page": "app/best-attire/page.js",
+  "/find-my-room/page": "app/find-my-room/page.js",
+  "/page": "app/page.js",
   "/dashboard/page": "app/dashboard/page.js"
 }
