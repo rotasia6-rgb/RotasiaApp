@@ -1,9 +1,9 @@
 {
   "pages": {
-    "/page": [
+    "/best-attire/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/page.js"
+      "static/chunks/app/best-attire/page.js"
     ],
     "/layout": [
       "static/chunks/webpack.js",
@@ -11,10 +11,41 @@
       "static/css/app/layout.css",
       "static/chunks/app/layout.js"
     ],
-    "/coming-soon/page": [
+    "/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/coming-soon/page.js"
+      "static/chunks/app/page.js"
+    ],
+    "/dashboard/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/dashboard/page.js"
+    ],
+    "/dashboard/voting/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/dashboard/voting/page.js"
+    ],
+    "/voting/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/voting/page.js"
+    ],
+    "/feedback/wall/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/feedback/wall/page.css",
+      "static/chunks/app/feedback/wall/page.js"
+    ],
+    "/feedback/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/feedback/page.js"
+    ],
+    "/food-feedback/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/food-feedback/page.js"
     ],
     "/find-my-room/page": [
       "static/chunks/webpack.js",

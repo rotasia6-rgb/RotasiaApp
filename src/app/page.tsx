@@ -55,7 +55,7 @@ export default function Home() {
                         </Link>
 
                         {/* Best Attire */}
-                        <Link href="/best-attire" className="group relative overflow-hidden rounded-3xl bg-white/5 border border-white/10 p-6 hover:bg-white/10 transition-all hover:border-pink-500/50 hover:shadow-[0_0_20px_rgba(236,72,153,0.2)] hover:-translate-y-1">
+                        <Link href="/dashboard/voting" className="group relative overflow-hidden rounded-3xl bg-white/5 border border-white/10 p-6 hover:bg-white/10 transition-all hover:border-pink-500/50 hover:shadow-[0_0_20px_rgba(236,72,153,0.2)] hover:-translate-y-1">
                             <div className="flex items-start justify-between mb-4">
                                 <div className="p-3 rounded-xl bg-pink-500/20 text-pink-400 group-hover:bg-pink-500 group-hover:text-white transition-colors duration-300">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.38 3.4a1.6 1.6 0 0 1 .5 1.48l-1.93 11.23a2.4 2.4 0 0 1-2.3 2H7.35a2.4 2.4 0 0 1-2.3-2L3.12 4.88a1.6 1.6 0 0 1 .5-1.48 1.62 1.62 0 0 1 1.48-.65h13.8a1.62 1.62 0 0 1 1.48.65z" /><path d="M12 8v13" /><path d="M12 21h-2" /><path d="M12 21h2" /></svg>
@@ -67,7 +67,7 @@ export default function Home() {
                         </Link>
 
                         {/* Wall of Love */}
-                        <Link href="/coming-soon" className="group relative overflow-hidden rounded-3xl bg-white/5 border border-white/10 p-6 hover:bg-white/10 transition-all hover:border-red-500/50 hover:shadow-[0_0_20px_rgba(239,68,68,0.2)] hover:-translate-y-1">
+                        <Link href="/feedback" className="group relative overflow-hidden rounded-3xl bg-white/5 border border-white/10 p-6 hover:bg-white/10 transition-all hover:border-red-500/50 hover:shadow-[0_0_20px_rgba(239,68,68,0.2)] hover:-translate-y-1">
                             <div className="flex items-start justify-between mb-4">
                                 <div className="p-3 rounded-xl bg-red-500/20 text-red-400 group-hover:bg-red-500 group-hover:text-white transition-colors duration-300">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>
@@ -78,7 +78,7 @@ export default function Home() {
                         </Link>
 
                         {/* Live Voting */}
-                        <Link href="/coming-soon" className="group relative overflow-hidden rounded-3xl bg-white/5 border border-white/10 p-6 hover:bg-white/10 transition-all hover:border-yellow-500/50 hover:shadow-[0_0_20px_rgba(234,179,8,0.2)] hover:-translate-y-1">
+                        <Link href="/voting" className="group relative overflow-hidden rounded-3xl bg-white/5 border border-white/10 p-6 hover:bg-white/10 transition-all hover:border-yellow-500/50 hover:shadow-[0_0_20px_rgba(234,179,8,0.2)] hover:-translate-y-1">
                             <div className="flex items-start justify-between mb-4">
                                 <div className="p-3 rounded-xl bg-yellow-500/20 text-yellow-400 group-hover:bg-yellow-500 group-hover:text-white transition-colors duration-300">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20v-6M6 20V10M18 20V4" /></svg>
@@ -89,7 +89,7 @@ export default function Home() {
                         </Link>
 
                         {/* Food Feedback */}
-                        <Link href="/coming-soon" className="group relative overflow-hidden rounded-3xl bg-white/5 border border-white/10 p-6 hover:bg-white/10 transition-all hover:border-green-500/50 hover:shadow-[0_0_20px_rgba(34,197,94,0.2)] hover:-translate-y-1">
+                        <Link href="/food-feedback" className="group relative overflow-hidden rounded-3xl bg-white/5 border border-white/10 p-6 hover:bg-white/10 transition-all hover:border-green-500/50 hover:shadow-[0_0_20px_rgba(34,197,94,0.2)] hover:-translate-y-1">
                             <div className="flex items-start justify-between mb-4">
                                 <div className="p-3 rounded-xl bg-green-500/20 text-green-400 group-hover:bg-green-500 group-hover:text-white transition-colors duration-300">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7" /></svg>
@@ -98,6 +98,8 @@ export default function Home() {
                             <h3 className="text-xl font-bold text-white mb-1 group-hover:text-green-200">Food Feedback</h3>
                             <p className="text-gray-400 text-xs">Rate your culinary experience.</p>
                         </Link>
+
+
 
                     </div>
 

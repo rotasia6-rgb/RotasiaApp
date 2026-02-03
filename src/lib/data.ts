@@ -2,7 +2,9 @@
 export type Delegate = {
     id: string;
     name: string;
-    organization?: string; // Added optional field to match DB schema if needed
+    organization?: string;
+    district?: string;
+    rotasia_id?: string;
 };
 
 export type Day = 1 | 2 | 3 | 4;

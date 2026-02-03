@@ -17,9 +17,8 @@ export default function Navbar() {
         }
     }, []);
 
-    // Only show Navbar on dashboard pages (Organizer Pages)
-    // The user requested to remove the blue header from all delegate pages.
-    if (!pathname?.startsWith("/dashboard")) {
+    // Only show Navbar on dashboard pages (Organizer Pages) but NOT on voting dashboard
+    if (!pathname?.startsWith("/dashboard") || pathname === "/dashboard/voting") {
         return null;
     }
 

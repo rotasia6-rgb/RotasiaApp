@@ -119,13 +119,7 @@ export default function VotingAdminPage() {
 
     return (
         <div className="container mx-auto p-6 max-w-5xl">
-            <div className="flex justify-between items-center mb-8">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-800">Voting Manager</h1>
-                    <p className="text-gray-500 mt-1">Manage Best Outfit Contestants</p>
-                </div>
-                <a href="/voting" target="_blank" className="text-blue-600 hover:text-blue-800 font-medium">View Public Page</a>
-            </div>
+
 
             {/* Add New */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">

@@ -19,7 +19,9 @@ export default function DelegatesModal({ delegates, isOpen, onClose }: Delegates
         return delegates.filter(
             (d) =>
                 d.name.toLowerCase().includes(query) ||
-                d.id.toLowerCase().includes(query) ||
+                (d.rotasia_id && d.rotasia_id.toLowerCase().includes(query)) ||
+                (d.id.toLowerCase().includes(query)) ||
+                (d.district && d.district.toLowerCase().includes(query)) ||
                 (d.organization && d.organization.toLowerCase().includes(query))
         );
     }, [delegates, searchQuery]);
@@ -58,7 +60,7 @@ export default function DelegatesModal({ delegates, isOpen, onClose }: Delegates
                         <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
                         <input
                             type="text"
-                            placeholder="Search by ID, Name, or Organization..."
+                            placeholder="Search by ID, Name, or District..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm"
@@ -72,9 +74,9 @@ export default function DelegatesModal({ delegates, isOpen, onClose }: Delegates
                     <table className="w-full text-left border-collapse">
                         <thead className="bg-gray-50 sticky top-0 shadow-sm z-0">
                             <tr>
-                                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider w-32">ID</th>
+                                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider w-32">Rotasia ID</th>
                                 <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
-                                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden sm:table-cell">Organization</th>
+                                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden sm:table-cell">RI District</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -82,14 +84,14 @@ export default function DelegatesModal({ delegates, isOpen, onClose }: Delegates
                                 <tr key={delegate.id} className="hover:bg-blue-50/50 transition-colors group">
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className="font-mono font-medium text-gray-900 bg-gray-100 px-2 py-1 rounded text-sm group-hover:bg-white border border-transparent group-hover:border-gray-200 transition-colors">
-                                            {delegate.id}
+                                            {delegate.rotasia_id || (delegate.id ? delegate.id.substring(0, 8).toUpperCase() : "-")}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="text-sm font-semibold text-gray-900">{delegate.name}</div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap hidden sm:table-cell">
-                                        <div className="text-sm text-gray-500">{delegate.organization || "N/A"}</div>
+                                        <div className="text-sm text-gray-500">{delegate.district || delegate.organization || "N/A"}</div>
                                     </td>
                                 </tr>
                             ))}
