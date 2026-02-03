@@ -14,6 +14,7 @@ interface DelegateDetails {
     room_number: string;
     rotasia_id: string;
     email: string;
+    hotel?: string;
 }
 
 interface Roommate {
@@ -100,7 +101,8 @@ export default function RoomLookupPage() {
                 district: me.district || "N/A",
                 room_number: me.room_number || "To be assigned",
                 rotasia_id: me.rotasia_id || me.id.substring(0, 8).toUpperCase(),
-                email: me.email
+                email: me.email,
+                hotel: me.hotel || "TBD"
             };
             setMyData(myDetails);
 
@@ -189,7 +191,8 @@ export default function RoomLookupPage() {
                     district: me.district || "N/A",
                     room_number: me.room_number || "To be assigned",
                     rotasia_id: me.rotasia_id || me.id.substring(0, 8).toUpperCase(),
-                    email: me.email
+                    email: me.email,
+                    hotel: me.hotel || "TBD"
                 };
                 setMyData(myDetails);
 
@@ -467,6 +470,9 @@ export default function RoomLookupPage() {
                                         </div>
                                         <div>
                                             <span className="font-bold text-lg block leading-none">Room Allocation</span>
+                                            {myData.hotel && (
+                                                <span className="text-sm text-purple-200 block mt-1 font-medium">{myData.hotel}</span>
+                                            )}
                                             <span className="text-xs text-purple-300 uppercase tracking-widest">Confirmed</span>
                                         </div>
                                     </div>

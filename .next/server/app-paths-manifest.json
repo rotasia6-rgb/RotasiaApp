@@ -1,7 +1,4 @@
 {
   "/page": "app/page.js",
-  "/dashboard/voting/page": "app/dashboard/voting/page.js",
-  "/feedback/page": "app/feedback/page.js",
-  "/food-feedback/page": "app/food-feedback/page.js",
-  "/dashboard/page": "app/dashboard/page.js"
+  "/find-my-room/page": "app/find-my-room/page.js"
 }
