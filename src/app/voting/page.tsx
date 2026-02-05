@@ -151,6 +151,8 @@ export default function VotingPage() {
                                 src={getOptimizedImageUrl(item.contestant_photo)}
                                 alt={item.contestant_name}
                                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                referrerPolicy="no-referrer"
+                                loading="lazy"
                                 onError={(e) => {
                                     // Fallback if optimized URL fails
                                     const target = e.target as HTMLImageElement;
@@ -238,8 +240,8 @@ export default function VotingPage() {
                 </div>
             ) : (
                 <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 px-2 md:px-4">
-                    {renderList(maleNominations, "Mr. Rotasia", "from-[#4C24C1]", "to-[#6d4aff]")}
-                    {renderList(femaleNominations, "Ms. Rotasia", "from-[#E91A83]", "to-[#ff479d]")}
+                    {renderList(maleNominations, "Best Attire Male", "from-[#4C24C1]", "to-[#6d4aff]")}
+                    {renderList(femaleNominations, "Best Attire Female", "from-[#E91A83]", "to-[#ff479d]")}
                 </div>
             )}
         </div>
