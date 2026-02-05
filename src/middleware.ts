@@ -13,7 +13,7 @@ export function middleware(request: NextRequest) {
     // If user is missing cookie and tries to access protected routes
     // Protected routes: Dashboard (/dashboard) and Scan (/scan)
     // / (root) is now public (Form)
-    const isProtectedRoute = pathname.startsWith("/dashboard") || pathname.startsWith("/scan");
+    const isProtectedRoute = (pathname.startsWith("/dashboard") && !pathname.startsWith("/dashboard/voting")) || pathname.startsWith("/scan");
 
     if (!authCookie && isProtectedRoute) {
         return NextResponse.redirect(new URL("/login", request.url));

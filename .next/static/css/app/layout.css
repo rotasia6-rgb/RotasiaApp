@@ -3054,6 +3054,10 @@ body {
   --tw-shadow-color: rgb(236 72 153 / 0.2);
   --tw-shadow: var(--tw-shadow-colored);
 }
+.hover\:shadow-pink-500\/50:hover {
+  --tw-shadow-color: rgb(236 72 153 / 0.5);
+  --tw-shadow: var(--tw-shadow-colored);
+}
 .focus\:border-blue-500:focus {
   --tw-border-opacity: 1;
   border-color: rgb(59 130 246 / var(--tw-border-opacity, 1));

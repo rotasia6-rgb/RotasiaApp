@@ -55,7 +55,7 @@ export default function Home() {
                         </Link>
 
                         {/* Best Attire */}
-                        <Link href="/best-attire" className="group relative overflow-hidden rounded-3xl bg-white/5 border border-white/10 p-6 hover:bg-white/10 transition-all hover:border-pink-500/50 hover:shadow-[0_0_20px_rgba(236,72,153,0.2)] hover:-translate-y-1">
+                        <Link href="/dashboard/voting" className="group relative overflow-hidden rounded-3xl bg-white/5 border border-white/10 p-6 hover:bg-white/10 transition-all hover:border-pink-500/50 hover:shadow-[0_0_20px_rgba(236,72,153,0.2)] hover:-translate-y-1">
                             <div className="flex items-start justify-between mb-4">
                                 <div className="p-3 rounded-xl bg-pink-500/20 text-pink-400 group-hover:bg-pink-500 group-hover:text-white transition-colors duration-300">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.38 3.4a1.6 1.6 0 0 1 .5 1.48l-1.93 11.23a2.4 2.4 0 0 1-2.3 2H7.35a2.4 2.4 0 0 1-2.3-2L3.12 4.88a1.6 1.6 0 0 1 .5-1.48 1.62 1.62 0 0 1 1.48-.65h13.8a1.62 1.62 0 0 1 1.48.65z" /><path d="M12 8v13" /><path d="M12 21h-2" /><path d="M12 21h2" /></svg>
