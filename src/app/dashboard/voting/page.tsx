@@ -3,7 +3,7 @@
 import { useState, useEffect, ChangeEvent } from "react";
 import { supabase } from "@/lib/supabase";
 import { Nomination } from "@/types/voting";
-import { Plus, Trash2, Trophy, Upload, User, Image as ImageIcon } from "lucide-react";
+import { Plus, Trophy, Upload, User, Image as ImageIcon } from "lucide-react";
 
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyImFNGdjEl9s08PAczr4LFRQVHAUXPn9F8N0AkB1gbCdp9sAg7oyOvSQAh_vwdTgJa/exec';
 
@@ -108,14 +108,7 @@ export default function VotingAdminPage() {
         }
     };
 
-    const deleteContestant = async (id: string) => {
-        if (!confirm('Are you sure?')) return;
 
-        const { error } = await supabase.from('nominations').delete().eq('id', id);
-        if (!error) {
-            setNominations(prev => prev.filter(n => n.id !== id));
-        }
-    };
 
     return (
         <div className="container mx-auto p-6 max-w-5xl">
@@ -200,7 +193,6 @@ export default function VotingAdminPage() {
                             <th className="px-6 py-4 font-semibold">Contestant</th>
                             <th className="px-6 py-4 font-semibold">Gender</th>
                             <th className="px-6 py-4 font-semibold text-center">Votes</th>
-                            <th className="px-6 py-4 font-semibold text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -239,14 +231,7 @@ export default function VotingAdminPage() {
                                             {item.votes}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <button
-                                            onClick={() => deleteContestant(item.id)}
-                                            className="text-red-400 hover:text-red-600 p-2 hover:bg-red-50 rounded-lg transition-colors"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
-                                    </td>
+
                                 </tr>
                             ))}
                     </tbody>

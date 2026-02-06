@@ -1,9 +1,3 @@
 {
-  "/page": "app/page.js",
-  "/find-my-room/page": "app/find-my-room/page.js",
-  "/best-attire/page": "app/best-attire/page.js",
-  "/dashboard/voting/page": "app/dashboard/voting/page.js",
-  "/voting/page": "app/voting/page.js",
-  "/feedback/page": "app/feedback/page.js",
-  "/food-feedback/page": "app/food-feedback/page.js"
+  "/dashboard/voting/page": "app/dashboard/voting/page.js"
 }
