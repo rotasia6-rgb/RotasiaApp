@@ -59,19 +59,47 @@ export default function VotingPage() {
         };
     }, []);
 
+    const generateFingerprint = async (): Promise<string> => {
+        // Collect device attributes
+        const components = [
+            navigator.userAgent,
+            navigator.language,
+            screen.colorDepth,
+            screen.width + 'x' + screen.height,
+            new Date().getTimezoneOffset(),
+            // @ts-ignore
+            navigator.deviceMemory || 'unknown',
+            // @ts-ignore
+            navigator.hardwareConcurrency || 'unknown',
+            // @ts-ignore
+            navigator.platform || 'unknown'
+        ];
+
+        // Simple hash function (DJB2)
+        const str = components.join('||');
+        let hash = 5381;
+        for (let i = 0; i < str.length; i++) {
+            hash = (hash * 33) ^ str.charCodeAt(i);
+        }
+        return (hash >>> 0).toString(16);
+    };
+
     const handleVote = async (id: string) => {
+        const fingerprint = await generateFingerprint();
+
+        // Optimistic check: if we know this device voted based on local state, stop early
         if (votedIds.has(id)) return;
 
-        // Vibrate for haptic feedback on mobile
+        // Vibrate for haptic feedback
         if (navigator.vibrate) navigator.vibrate(50);
 
-        // Optimistic UI update
+        // Optimistic UI update (will revert if server rejects)
         setNominations(prev =>
             prev.map(n => n.id === id ? { ...n, votes: n.votes + 1 } : n)
-                .sort((a, b) => b.votes - a.votes) // Re-sort locally
+                .sort((a, b) => b.votes - a.votes)
         );
 
-        // Trigger confetti
+        // Confetti
         confetti({
             particleCount: 50,
             spread: 60,
@@ -79,25 +107,43 @@ export default function VotingPage() {
             colors: ['#E91A83', '#4C24C1']
         });
 
-        // Store vote locally
-        const newVotedIds = new Set(votedIds).add(id);
-        setVotedIds(newVotedIds);
-        localStorage.setItem('rotasia_voted_ids', JSON.stringify(Array.from(newVotedIds)));
-
         try {
-            const { error } = await supabase.rpc('increment_vote', { row_id: id });
-            if (error) {
-                // Fallback for direct update if RPC fails
-                const current = nominations.find(n => n.id === id);
-                if (current) {
-                    await supabase
-                        .from('nominations')
-                        .update({ votes: current.votes + 1 })
-                        .eq('id', id);
+            // Call secure RPC
+            const { data, error } = await supabase.rpc('vote_for_nomination', {
+                p_nomination_id: id,
+                p_device_fingerprint: fingerprint
+            });
+
+            if (error) throw error;
+
+            if (data && data.success) {
+                // Success: Update local storage as "cache"
+                const newVotedIds = new Set(votedIds).add(id);
+                setVotedIds(newVotedIds);
+                localStorage.setItem('rotasia_voted_ids', JSON.stringify(Array.from(newVotedIds)));
+            } else {
+                // Server rejected (Already voted): Revert optimistic update
+                alert(data?.message || "Vote failed");
+                setNominations(prev =>
+                    prev.map(n => n.id === id ? { ...n, votes: n.votes - 1 } : n)
+                        .sort((a, b) => b.votes - a.votes)
+                );
+
+                // If server says we voted, make sure local state reflects that
+                if (data?.message?.includes('already voted')) {
+                    const newVotedIds = new Set(votedIds).add(id);
+                    setVotedIds(newVotedIds);
+                    localStorage.setItem('rotasia_voted_ids', JSON.stringify(Array.from(newVotedIds)));
                 }
             }
         } catch (error) {
             console.error('Error voting:', error);
+            // Revert on network error
+            setNominations(prev =>
+                prev.map(n => n.id === id ? { ...n, votes: n.votes - 1 } : n)
+                    .sort((a, b) => b.votes - a.votes)
+            );
+            alert("Failed to submit vote. Please try again.");
         }
     };
 

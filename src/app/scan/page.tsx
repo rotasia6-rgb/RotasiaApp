@@ -117,23 +117,41 @@ export default function ScanPage() {
             const delegate = delegates.find((d) => d.rotasia_id === cleanId);
 
             if (!delegate) {
-                playBeep("error");
-                setFeedback({ type: "error", message: "Invalid ID", subtext: `${cleanId} not found` });
+                // Log Invalid scan
+                await supabase.from("invalid_scans").insert({
+                    scanned_content: cleanId,
+                    reason: 'invalid_id',
+                    day: selectedDay,
+                    purpose: selectedPurpose,
+                    scanned_by: currentUser || 'unknown'
+                });
+
+                playBeep("success");
+                setFeedback({ type: "success", message: "New QR Recorded", subtext: "Scanned Successfully" });
                 setIsProcessing(false);
                 return;
             }
 
             // 3. Duplicate Check (Local Cache First - Latency Optimization)
             const alreadyScannedLocal = records.find(
-                r => r.delegate_id === cleanId && r.day === selectedDay && r.purpose === selectedPurpose
+                r => r.delegate_id === delegate.id && r.day === selectedDay && r.purpose === selectedPurpose
             );
 
             if (alreadyScannedLocal) {
-                playBeep("error"); // Warning beep
+                // Log Duplicate scan
+                await supabase.from("invalid_scans").insert({
+                    scanned_content: cleanId,
+                    reason: 'duplicate',
+                    day: selectedDay,
+                    purpose: selectedPurpose,
+                    scanned_by: currentUser || 'unknown'
+                });
+
+                playBeep("success");
                 setFeedback({
-                    type: "warning",
-                    message: "Duplicate Entry!",
-                    subtext: `Already recorded at ${new Date(alreadyScannedLocal.timestamp).toLocaleTimeString()}`
+                    type: "success",
+                    message: "Duplicate",
+                    subtext: `Entries Updated Successfully`
                 });
                 setIsProcessing(false);
                 return;
@@ -161,8 +179,17 @@ export default function ScanPage() {
 
                 if (error) {
                     if (error.code === '23505') { // Unique constraint
-                        playBeep("error");
-                        setFeedback({ type: "warning", message: "Duplicate Entry!", subtext: "Recorded by another device." });
+                        // Log Duplicate scan (Concurrency case)
+                        await supabase.from("invalid_scans").insert({
+                            scanned_content: cleanId,
+                            reason: 'duplicate',
+                            day: selectedDay,
+                            purpose: selectedPurpose,
+                            scanned_by: currentUser || 'unknown'
+                        });
+
+                        playBeep("success");
+                        setFeedback({ type: "success", message: "Duplicate", subtext: "Recorded Successfully" });
                     } else if (error.message && (error.message.includes("fetch") || error.message.includes("network"))) {
                         // Network error fallback
                         addToQueue({

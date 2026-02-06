@@ -3,6 +3,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { useScanRecords } from "@/hooks/useScanRecords";
 import { calculateStats } from "@/lib/stats";
+import { supabase } from "@/lib/supabase";
 import { Users, UserCheck, Activity, Filter, ChevronDown, LogOut, Crown, MessageSquareQuote, FileText, Camera } from "lucide-react";
 import { logoutAction } from "@/actions/auth";
 import { cn } from "@/lib/utils";
@@ -23,6 +24,7 @@ export default function Dashboard() {
     const [filterPurpose, setFilterPurpose] = useState<string>(PURPOSES_BY_DAY[DAYS[0]][0]);
     const [currentUser, setCurrentUser] = useState<string | null>(null);
     const [activeBreakdown, setActiveBreakdown] = useState<{ day: Day; purpose: string } | null>(null);
+    const [invalidScansCount, setInvalidScansCount] = useState(0);
 
     // Get current user from cookie
     useEffect(() => {
@@ -65,6 +67,46 @@ export default function Dashboard() {
             }
         }
     }, [availablePurposes, filterPurpose]);
+
+
+
+    // Fetch invalid scans count when filter changes
+    useEffect(() => {
+        const fetchInvalidScans = async () => {
+            const { count, error } = await supabase
+                .from('invalid_scans')
+                .select('*', { count: 'exact', head: true })
+                .eq('day', filterDay)
+                .eq('purpose', filterPurpose);
+
+            if (!error && count !== null) {
+                setInvalidScansCount(count);
+            }
+        };
+
+        fetchInvalidScans();
+
+        // Subscribe to changes for realtime updates
+        const channel = supabase
+            .channel('public:invalid_scans')
+            .on(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'invalid_scans',
+                    filter: `day=eq.${filterDay} AND purpose=eq.${filterPurpose}`
+                },
+                () => {
+                    fetchInvalidScans();
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [filterDay, filterPurpose]);
 
     // Calculate stats only when delegates are loaded
     const stats = useMemo(() => {
@@ -185,7 +227,7 @@ export default function Dashboard() {
 
                     <div className="flex items-end justify-between mt-2">
                         <div>
-                            <div className="text-3xl font-bold text-gray-900">{filteredData.count}</div>
+                            <div className="text-3xl font-bold text-gray-900">{filteredData.count + invalidScansCount}</div>
                             <div className="text-xs text-gray-400 font-medium uppercase mt-1">Scanned</div>
                         </div>
                         <div className="text-right">
