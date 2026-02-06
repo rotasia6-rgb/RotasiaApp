@@ -97,6 +97,7 @@ export default function VotingAdminPage() {
                 setFile(null);
                 setFileName("");
                 setGender('male');
+                alert("Contestant added successfully!");
                 fetchNominations();
             } else {
                 alert("Failed to save contestant: " + error.message);
@@ -127,7 +128,7 @@ export default function VotingAdminPage() {
                             value={newName}
                             onChange={(e) => setNewName(e.target.value)}
                             placeholder="Contestant Name"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 bg-white"
                         />
                     </div>
 
@@ -137,7 +138,7 @@ export default function VotingAdminPage() {
                         <select
                             value={gender}
                             onChange={(e) => setGender(e.target.value as 'male' | 'female')}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-900"
                         >
                             <option value="male">Male</option>
                             <option value="female">Female</option>
