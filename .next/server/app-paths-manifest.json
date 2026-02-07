@@ -1,5 +1,7 @@
 {
-  "/dashboard/voting/page": "app/dashboard/voting/page.js",
+  "/page": "app/page.js",
+  "/feedback/submit/page": "app/feedback/submit/page.js",
   "/feedback/page": "app/feedback/page.js",
-  "/page": "app/page.js"
+  "/voting/page": "app/voting/page.js",
+  "/food-feedback/page": "app/food-feedback/page.js"
 }

@@ -66,14 +66,14 @@ export default function Home() {
                             <p className="text-gray-400 text-xs">Vote for the best dressed style icons.</p>
                         </Link>
 
-                        {/* Wall of Love */}
-                        <Link href="/feedback" className="group relative overflow-hidden rounded-3xl bg-white/5 border border-white/10 p-6 hover:bg-white/10 transition-all hover:border-red-500/50 hover:shadow-[0_0_20px_rgba(239,68,68,0.2)] hover:-translate-y-1">
+                        {/* Feedback */}
+                        <Link href="/feedback/submit" className="group relative overflow-hidden rounded-3xl bg-white/5 border border-white/10 p-6 hover:bg-white/10 transition-all hover:border-red-500/50 hover:shadow-[0_0_20px_rgba(239,68,68,0.2)] hover:-translate-y-1">
                             <div className="flex items-start justify-between mb-4">
                                 <div className="p-3 rounded-xl bg-red-500/20 text-red-400 group-hover:bg-red-500 group-hover:text-white transition-colors duration-300">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>
                                 </div>
                             </div>
-                            <h3 className="text-xl font-bold text-white mb-1 group-hover:text-red-200">Wall of Love</h3>
+                            <h3 className="text-xl font-bold text-white mb-1 group-hover:text-red-200">Feedback</h3>
                             <p className="text-gray-400 text-xs">Share your Rotasia moments & love.</p>
                         </Link>
 

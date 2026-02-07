@@ -1,8 +1,8 @@
-// File: /Users/finstein-emp/Documents/RotasiaApp/src/app/best-attire/page.tsx
-import * as entry from '../../../../src/app/best-attire/page.js'
+// File: /Users/finstein-emp/Documents/RotasiaApp/src/app/food-feedback/page.tsx
+import * as entry from '../../../../src/app/food-feedback/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
-type TEntry = typeof import('../../../../src/app/best-attire/page.js')
+type TEntry = typeof import('../../../../src/app/food-feedback/page.js')
 
 // Check that the entry is a valid entry
 checkFields<Diff<{
