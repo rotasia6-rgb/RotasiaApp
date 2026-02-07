@@ -8,4 +8,5 @@ export interface Nomination {
     gender: 'male' | 'female';
     status: 'pending' | 'approved' | 'rejected';
     caption?: string;
+    day?: number;
 }

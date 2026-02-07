@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useEffect } from "react";
 import { useScanRecords } from "@/hooks/useScanRecords";
+import { useInvalidScanRecords } from "@/hooks/useInvalidScanRecords";
 import { calculateStats } from "@/lib/stats";
 import { supabase } from "@/lib/supabase";
 import { Users, UserCheck, Activity, Filter, ChevronDown, LogOut, Crown, MessageSquareQuote, FileText, Camera } from "lucide-react";
@@ -16,6 +17,7 @@ import BreakdownModal from "@/components/BreakdownModal";
 
 export default function Dashboard() {
     const records = useScanRecords();
+    const invalidRecords = useInvalidScanRecords();
     const { delegates, isLoading } = useDelegates();
     const [isDelegatesModalOpen, setIsDelegatesModalOpen] = useState(false);
 
@@ -24,7 +26,6 @@ export default function Dashboard() {
     const [filterPurpose, setFilterPurpose] = useState<string>(PURPOSES_BY_DAY[DAYS[0]][0]);
     const [currentUser, setCurrentUser] = useState<string | null>(null);
     const [activeBreakdown, setActiveBreakdown] = useState<{ day: Day; purpose: string } | null>(null);
-    const [invalidScansCount, setInvalidScansCount] = useState(0);
 
     // Get current user from cookie
     useEffect(() => {
@@ -70,66 +71,37 @@ export default function Dashboard() {
 
 
 
-    // Fetch invalid scans count when filter changes
-    useEffect(() => {
-        const fetchInvalidScans = async () => {
-            const { count, error } = await supabase
-                .from('invalid_scans')
-                .select('*', { count: 'exact', head: true })
-                .eq('day', filterDay)
-                .eq('purpose', filterPurpose);
-
-            if (!error && count !== null) {
-                setInvalidScansCount(count);
-            }
-        };
-
-        fetchInvalidScans();
-
-        // Subscribe to changes for realtime updates
-        const channel = supabase
-            .channel('public:invalid_scans')
-            .on(
-                'postgres_changes',
-                {
-                    event: 'INSERT',
-                    schema: 'public',
-                    table: 'invalid_scans',
-                    filter: `day=eq.${filterDay} AND purpose=eq.${filterPurpose}`
-                },
-                () => {
-                    fetchInvalidScans();
-                }
-            )
-            .subscribe();
-
-        return () => {
-            supabase.removeChannel(channel);
-        };
-    }, [filterDay, filterPurpose]);
-
     // Calculate stats only when delegates are loaded
     const stats = useMemo(() => {
         if (isLoading) return null;
-        return calculateStats(records, delegates);
-    }, [records, delegates, isLoading]);
+        return calculateStats(records, invalidRecords, delegates);
+    }, [records, invalidRecords, delegates, isLoading]);
 
     const filteredData = useMemo(() => {
-        if (!records) return { count: 0, remaining: 0 };
+        if (!records) return { count: 0, remaining: 0, invalidCount: 0, duplicateCount: 0 };
         // We can just filter raw records directly for absolute accuracy
         const count = records.filter(r => r.day === filterDay && r.purpose === filterPurpose).length;
+        // All invalid records for this day/purpose
+        const invalidForSlot = invalidRecords.filter(r => r.day === filterDay && r.purpose === filterPurpose);
+        const invalidCount = invalidForSlot.length;
+        const duplicateCount = invalidForSlot.filter(r => r.reason === 'duplicate').length;
+
         const total = delegates.length;
         return {
             count,
-            remaining: total - count
+            invalidCount,
+            duplicateCount,
+            remaining: total - count // Remaining is based on VALID scans relative to total delegates? Or total participation?
+            // Usually "Remaining" means "People who haven't scanned yet". People who scanned invalidly/duplicate might still be "remaining" if they haven't scanned successfully?
+            // Use case: "How many people do we still expect?" 
+            // If I scan invalidly, I haven't successfully checked in. So I am still "remaining".
+            // So remaining = total - valid_count.
+            // But "Scanned" checks "How many times was the scanner used?" (Valid + Invalid).
         };
-    }, [records, delegates.length, filterDay, filterPurpose]);
+    }, [records, invalidRecords, delegates.length, filterDay, filterPurpose]);
 
     const handleDayChange = (newDay: Day) => {
         setFilterDay(newDay);
-        // Default to first purpose of new day to avoid invalid state
-        // This will be auto-corrected by the useEffect above, but good to reset here too
-        // setFilterPurpose(PURPOSES_BY_DAY[newDay][0]); // Removed to let effect handle it safely
     };
 
     if (isLoading || !stats) {
@@ -227,8 +199,15 @@ export default function Dashboard() {
 
                     <div className="flex items-end justify-between mt-2">
                         <div>
-                            <div className="text-3xl font-bold text-gray-900">{filteredData.count + invalidScansCount}</div>
-                            <div className="text-xs text-gray-400 font-medium uppercase mt-1">Scanned</div>
+                            <div className="text-3xl font-bold text-gray-900">{filteredData.count + filteredData.invalidCount}</div>
+                            <div className="text-xs text-gray-400 font-medium uppercase mt-1">
+                                Scanned
+                                {filteredData.duplicateCount > 0 && (
+                                    <span className="text-orange-500 ml-1">
+                                        ({filteredData.duplicateCount} Duplicates)
+                                    </span>
+                                )}
+                            </div>
                         </div>
                         <div className="text-right">
                             <div className="text-3xl font-bold text-gray-400">{filteredData.remaining}</div>
@@ -238,72 +217,78 @@ export default function Dashboard() {
                 </div>
 
                 {/* Catering (Visible only for Food or Admin) */}
-                {(!currentUser || !PERMISSIONS[currentUser] || PERMISSIONS[currentUser].allowedPurposes.includes("ALL") || currentUser === "Food") && (
-                    <KpiCard
-                        title="Catering Forecast"
-                        value={`~${lunchPrediction}`}
-                        icon={<UserCheck className="w-6 h-6 text-orange-500" />}
-                        subtext={`Lunch prediction based on ${breakfastCount} Breakfast`}
-                    />
-                )}
+                {
+                    (!currentUser || !PERMISSIONS[currentUser] || PERMISSIONS[currentUser].allowedPurposes.includes("ALL") || currentUser === "Food") && (
+                        <KpiCard
+                            title="Catering Forecast"
+                            value={`~${lunchPrediction}`}
+                            icon={<UserCheck className="w-6 h-6 text-orange-500" />}
+                            subtext={`Lunch prediction based on ${breakfastCount} Breakfast`}
+                        />
+                    )
+                }
 
                 {/* Modules for Kumar Only */}
-                {currentUser === "Kumar" && (
-                    <>
-                        <KpiCard
-                            title="Feedback"
-                            value="Manage"
-                            icon={<MessageSquareQuote className="w-6 h-6 text-purple-500" />}
-                            subtext="View & Approve Feedback"
-                            onClick={() => window.location.href = '/dashboard/feedback'}
-                            className="cursor-pointer hover:border-purple-300 hover:shadow-lg transition-all active:scale-95"
-                        />
+                {
+                    currentUser === "Kumar" && (
+                        <>
+                            <KpiCard
+                                title="Feedback"
+                                value="Manage"
+                                icon={<MessageSquareQuote className="w-6 h-6 text-purple-500" />}
+                                subtext="View & Approve Feedback"
+                                onClick={() => window.location.href = '/dashboard/feedback'}
+                                className="cursor-pointer hover:border-purple-300 hover:shadow-lg transition-all active:scale-95"
+                            />
 
-                        <KpiCard
-                            title="Best Outfit"
-                            value="Voting"
-                            icon={<Crown className="w-6 h-6 text-yellow-500" />}
-                            subtext="Manage Contestants"
-                            onClick={() => window.location.href = '/dashboard/voting'}
-                            className="cursor-pointer hover:border-yellow-300 hover:shadow-lg transition-all active:scale-95"
-                        />
+                            <KpiCard
+                                title="Best Outfit"
+                                value="Voting"
+                                icon={<Crown className="w-6 h-6 text-yellow-500" />}
+                                subtext="Manage Contestants"
+                                onClick={() => window.location.href = '/dashboard/voting'}
+                                className="cursor-pointer hover:border-yellow-300 hover:shadow-lg transition-all active:scale-95"
+                            />
 
-                        <KpiCard
-                            title="Registrations"
-                            value="View"
-                            icon={<FileText className="w-6 h-6 text-green-500" />}
-                            subtext="Event Showcase Entries"
-                            onClick={() => window.location.href = '/dashboard/registrations'}
-                            className="cursor-pointer hover:border-green-300 hover:shadow-lg transition-all active:scale-95"
-                        />
+                            <KpiCard
+                                title="Registrations"
+                                value="View"
+                                icon={<FileText className="w-6 h-6 text-green-500" />}
+                                subtext="Event Showcase Entries"
+                                onClick={() => window.location.href = '/dashboard/registrations'}
+                                className="cursor-pointer hover:border-green-300 hover:shadow-lg transition-all active:scale-95"
+                            />
 
-                        <KpiCard
-                            title="Best Attire Wall"
-                            value="Manage"
-                            icon={<Camera className="w-6 h-6 text-pink-500" />}
-                            subtext="Approve User Photos"
-                            onClick={() => window.location.href = '/dashboard/best-attire'}
-                            className="cursor-pointer hover:border-pink-300 hover:shadow-lg transition-all active:scale-95"
-                        />
-                    </>
-                )}
-            </div>
+                            <KpiCard
+                                title="Best Attire Wall"
+                                value="Manage"
+                                icon={<Camera className="w-6 h-6 text-pink-500" />}
+                                subtext="Approve User Photos"
+                                onClick={() => window.location.href = '/dashboard/best-attire'}
+                                className="cursor-pointer hover:border-pink-300 hover:shadow-lg transition-all active:scale-95"
+                            />
+                        </>
+                    )
+                }
+            </div >
 
             {/* Bottleneck Alert */}
-            {bottleneckPurpose && (
-                <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-8 flex items-start gap-4">
-                    <div className="p-2 bg-red-100 rounded-full text-red-600">
-                        <Activity className="w-5 h-5" />
+            {
+                bottleneckPurpose && (
+                    <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-8 flex items-start gap-4">
+                        <div className="p-2 bg-red-100 rounded-full text-red-600">
+                            <Activity className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-red-900">Potential Bottleneck: {bottleneckPurpose.name} (Day {bottleneckPurpose.day})</h3>
+                            <p className="text-sm text-red-700 mt-1">
+                                Only {bottleneckPurpose.count} scans recorded ({bottleneckPurpose.percentage.toFixed(1)}%).
+                                This is significantly lower than expected. Check scanner stations.
+                            </p>
+                        </div>
                     </div>
-                    <div>
-                        <h3 className="font-bold text-red-900">Potential Bottleneck: {bottleneckPurpose.name} (Day {bottleneckPurpose.day})</h3>
-                        <p className="text-sm text-red-700 mt-1">
-                            Only {bottleneckPurpose.count} scans recorded ({bottleneckPurpose.percentage.toFixed(1)}%).
-                            This is significantly lower than expected. Check scanner stations.
-                        </p>
-                    </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Daily Breakdown */}
             <h2 className="text-2xl font-semibold mb-6 text-gray-800">Daily Breakdown</h2>
@@ -329,7 +314,16 @@ export default function Dashboard() {
                                             <span className="font-medium text-gray-700 group-hover:text-blue-600 transition-colors">{purpose.name}</span>
                                             {purpose.percentage > 80 && <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded">Completed</span>}
                                         </div>
-                                        <span className="text-gray-500 group-hover:text-gray-900 transition-colors">{purpose.count} / {stats.totalDelegates} ({purpose.percentage.toFixed(0)}%)</span>
+                                        <div className="flex flex-col items-end">
+                                            <span className="text-gray-500 group-hover:text-gray-900 transition-colors font-medium">
+                                                {purpose.count} / {stats.totalDelegates} ({purpose.percentage.toFixed(0)}%)
+                                            </span>
+                                            {(purpose.duplicateCount || 0) > 0 && (
+                                                <span className="text-[10px] text-orange-500 font-medium whitespace-nowrap">
+                                                    {purpose.duplicateCount} Duplicates
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
                                     <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
                                         <div
@@ -356,17 +350,20 @@ export default function Dashboard() {
             />
 
             {/* Breakdown Modal */}
-            {activeBreakdown && (
-                <BreakdownModal
-                    isOpen={!!activeBreakdown}
-                    onClose={() => setActiveBreakdown(null)}
-                    delegates={delegates}
-                    records={records}
-                    day={activeBreakdown.day}
-                    purpose={activeBreakdown.purpose}
-                />
-            )}
-        </div>
+            {
+                activeBreakdown && (
+                    <BreakdownModal
+                        isOpen={!!activeBreakdown}
+                        onClose={() => setActiveBreakdown(null)}
+                        delegates={delegates}
+                        records={records}
+                        invalidRecords={invalidRecords}
+                        day={activeBreakdown.day}
+                        purpose={activeBreakdown.purpose}
+                    />
+                )
+            }
+        </div >
     );
 }
 

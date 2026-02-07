@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Delegate, ScanRecord, Day } from "@/lib/data";
+import { Delegate, ScanRecord, InvalidScanRecord, Day } from "@/lib/data";
 import { Search, X, Users, Filter, CheckCircle, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -10,13 +10,14 @@ interface BreakdownModalProps {
     onClose: () => void;
     delegates: Delegate[];
     records: ScanRecord[] | null;
+    invalidRecords?: InvalidScanRecord[] | null;
     day: Day;
     purpose: string;
 }
 
 type Tab = "remaining" | "scanned";
 
-export default function BreakdownModal({ isOpen, onClose, delegates, records, day, purpose }: BreakdownModalProps) {
+export default function BreakdownModal({ isOpen, onClose, delegates, records, invalidRecords, day, purpose }: BreakdownModalProps) {
     const [searchQuery, setSearchQuery] = useState("");
     const [activeTab, setActiveTab] = useState<Tab>("remaining");
 
@@ -30,25 +31,90 @@ export default function BreakdownModal({ isOpen, onClose, delegates, records, da
                 .map(r => r.delegate_id)
         );
 
-        const remaining = [];
-        const scanned = [];
+        // Map invalid scans to IDs (or content)
+        const invalidScansForSlot = (invalidRecords || [])
+            .filter(r => Number(r.day) === day && r.purpose === purpose); // Ensure numeric day check
 
+        const invalidScannedIds = new Set(
+            invalidScansForSlot.map(r => r.scanned_content)
+        );
+
+        const remaining = [];
+        const scanned: any[] = [];
+        const matchedDelegateIds = new Set<string>();
+
+        // 1. Add Known Delegates
         for (const delegate of delegates) {
-            if (scannedIds.has(delegate.id)) {
-                // Find timestamp for scanned
-                const record = records.find(r => r.delegate_id === delegate.id && r.day === day && r.purpose === purpose);
-                scanned.push({ ...delegate, scannedAt: record?.timestamp });
+            // Check if present in valid scans OR invalid scans (duplicates are in invalid_scans generally, assuming logic)
+            // Note: If duplicate, it might be in valid scans table once, and invalid scans table N times.
+            // If it is in valid scans table, it is "Scanned".
+            // If it is ONLY in invalid scans table (e.g. invalid ID?), then it might not match a delegate ID in the list anyway.
+            // But if it is a "Duplicate" scan, it implies it was valid at least once? Or maybe it was valid once, and subsequent are invalid?
+            // Wait, if it is in records, it is scanned.
+            // If it is NOT in records, but in invalidRecords (maybe logic failure?), should we count it?
+            // The user says "Invalid scan table data should me add... duplicate should also be added".
+            // If I scan ID "123" and it is duplicate, it implies "123" was already scanned.
+            // So "123" should be in `records`.
+            // What if the scan was invalid for another reason (e.g. 'invalid_id')? 
+            // If 'invalid_id', then it won't match any `delegate.id`. So it won't be shown in this list of *delegates*.
+            // UNLESS I list "Unknown Scans" separately? 
+            // `BreakdownModal` lists *Delegates* and their status.
+            // If proper ID "ABC" is scanned but marked invalid (e.g. wrong day?), should it show as "Scanned"?
+            // If I include invalidRecords, I can simulate it being scanned.
+
+            const isScannedValid = scannedIds.has(delegate.id);
+            const isScannedInvalid = invalidScannedIds.has(delegate.id);
+
+            if (isScannedValid || isScannedInvalid) {
+                // Find timestamp for scanned (prefer valid record)
+                const validRecord = records.find(r => r.delegate_id === delegate.id && r.day === day && r.purpose === purpose);
+                const invalidRecord = invalidRecords?.find(r => r.scanned_content === delegate.id && r.day === day && r.purpose === purpose);
+
+                scanned.push({
+                    ...delegate,
+                    scannedAt: validRecord?.timestamp || invalidRecord?.created_at,
+                    isInvalid: !validRecord && !!invalidRecord, // Flag if only found in invalid
+                    invalidReason: validRecord ? undefined : invalidRecord?.reason
+                });
             } else {
                 remaining.push(delegate);
             }
         }
+
+        // 2. Add Unknown/Unmatched Invalid Scans AND Duplicates
+        invalidScansForSlot.forEach((r, index) => {
+            const isMatched = matchedDelegateIds.has(r.scanned_content);
+
+            // If duplicate, ALWAYS add as extra row to listing 
+            // If duplicate and matched, it means we already added the main "delegate" row. 
+            // user wants counts to match. 
+            // If "duplicate", it is an extra scan. 
+            if (r.reason === 'duplicate' || !isMatched) {
+                scanned.push({
+                    id: `${r.scanned_content}_${index}`,
+                    name: r.reason === 'duplicate' ? `(Duplicate) ${r.scanned_content}` : `(Unknown) ${r.scanned_content}`,
+                    organization: r.reason === 'duplicate' ? "Duplicate Scan" : "Invalid Scan",
+                    scannedAt: r.created_at,
+                    isInvalid: true,
+                    invalidReason: r.reason
+                });
+            }
+        });
+
+        // Optional: Sort by scanned time desc
+        scanned.sort((a, b) => {
+            if (!a.scannedAt && !b.scannedAt) return 0;
+            if (!a.scannedAt) return 1;
+            if (!b.scannedAt) return -1;
+            return new Date(b.scannedAt).getTime() - new Date(a.scannedAt).getTime();
+        });
 
         return {
             startList: activeTab === "remaining" ? remaining : scanned,
             remainingCount: remaining.length,
             scannedCount: scanned.length
         };
-    }, [delegates, records, day, purpose, activeTab]);
+    }, [delegates, records, invalidRecords, day, purpose, activeTab]);
 
     const filteredList = useMemo(() => {
         if (!searchQuery.trim()) return startList;

@@ -9,12 +9,12 @@ export type Delegate = {
 
 export type Day = 1 | 2 | 3 | 4;
 
-export const DAYS: Day[] = [1, 2, 3, 4];
+export const DAYS: Day[] = [3, 4];
 
 export const PURPOSES_BY_DAY: Record<Day, string[]> = {
     1: ["Pickup 1", "Pickup 2", "Attendance", "Lunch", "High Tea", "Kit", "Dinner", "Drop"],
     2: ["Pickup", "Attendance", "Breakfast", "Lunch", "High Tea", "Dinner", "Drop"],
-    3: ["Pickup", "Attendance", "Breakfast", "Lunch", "High Tea", "Dinner", "Drop"],
+    3: ["Pickup", "Attendance", "Lunch", "High Tea", "Dinner", "Drop"],
     4: ["Pickup", "Attendance", "Breakfast", "Lunch", "Drop"],
 };
 
@@ -27,4 +27,13 @@ export type ScanRecord = {
     day: Day;
     purpose: string;
     timestamp: string; // ISO string
+};
+
+export type InvalidScanRecord = {
+    id: string;
+    scanned_content: string;
+    reason: string;
+    day: Day;
+    purpose: string;
+    created_at: string;
 };

@@ -1,3 +1,4 @@
 {
-  "/scan/page": "app/scan/page.js"
+  "/not-found": "app/not-found.js",
+  "/leaderboard/best-attire/page": "app/leaderboard/best-attire/page.js"
 }
