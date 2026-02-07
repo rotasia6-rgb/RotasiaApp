@@ -104,6 +104,13 @@ export default function BestAttirePage() {
         }
     }, [isLoading, highlightId]);
 
+    // Auto-open modal if ?action=submit
+    useEffect(() => {
+        if (searchParams.get('action') === 'submit') {
+            setIsModalOpen(true);
+        }
+    }, [searchParams]);
+
     const handleLike = async (item: Nomination) => {
         if (likedIds.has(item.id)) return;
 
@@ -429,6 +436,15 @@ export default function BestAttirePage() {
                         </div>
                     </div>
                 )}
+
+                {/* Floating Action Button */}
+                <button
+                    onClick={() => setIsModalOpen(true)}
+                    className="fixed bottom-6 right-6 z-40 bg-gradient-to-r from-pink-600 to-purple-600 text-white p-4 rounded-full shadow-2xl hover:scale-110 active:scale-95 transition-all shadow-pink-500/40"
+                    aria-label="Submit Entry"
+                >
+                    <Camera className="w-8 h-8" />
+                </button>
             </main>
         </div>
     );

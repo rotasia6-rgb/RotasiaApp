@@ -16,9 +16,17 @@ export default function VotingAdminPage() {
     const [fileName, setFileName] = useState<string>("");
 
     const fetchNominations = async () => {
+        // Get start and end of today in UTC to match Supabase timestamptz
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
         const { data, error } = await supabase
             .from('nominations')
             .select('*')
+            .gte('created_at', today.toISOString())
+            .lt('created_at', tomorrow.toISOString())
             .order('created_at', { ascending: false });
 
         if (data) setNominations(data as Nomination[]);
@@ -208,11 +216,15 @@ export default function VotingAdminPage() {
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
                                             {item.contestant_photo ? (
-                                                <img
-                                                    src={getOptimizedImageUrl(item.contestant_photo)}
-                                                    alt={item.contestant_name}
-                                                    className="w-10 h-10 rounded-full object-cover border border-gray-200"
-                                                />
+                                                <div className="w-10 h-10 rounded-full overflow-hidden border border-gray-200">
+                                                    <img
+                                                        src={getOptimizedImageUrl(item.contestant_photo)}
+                                                        alt={item.contestant_name}
+                                                        className="w-full h-full object-cover"
+                                                        loading="lazy"
+                                                        referrerPolicy="no-referrer"
+                                                    />
+                                                </div>
                                             ) : (
                                                 <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
                                                     <User className="w-5 h-5" />
